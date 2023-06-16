@@ -140,7 +140,7 @@ export const createUser = async (req, res) => {
 export const loginUser = async (req, res) => {
   try {
     req.body.refreshToken = true;
-    const data = req.query;
+    const data = req.body;
     const user = await db.User.findOne({
       include: [
         {
