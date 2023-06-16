@@ -138,42 +138,44 @@ export const createUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  // try {
-
-  // } catch (err) {
-  //   res.status(500).json(err);
-  // }
-  console.log("service in");
-  req.body.refreshToken = true;
-  const data = req.query;
-  const user = await db.User.findOne({
-    include: [
-      {
-        model: db.Customer,
+  try {
+    req.body.refreshToken = true;
+    const data = req.query;
+    const user = await db.User.findOne({
+      include: [
+        {
+          model: db.Customer,
+        },
+        {
+          model: db.Seller,
+        },
+        {
+          model: db.WishList,
+        },
+      ],
+      where: {
+        account: data.account,
+        password: data.password,
       },
-      {
-        model: db.Seller,
-      },
-      {
-        model: db.WishList,
-      },
-    ],
-    where: {
-      account: data.account,
-      password: data.password,
-    },
-  });
+    });
 
-  user.dataValues = {
-    ...user.dataValues,
-    password: null,
-  };
+    user.dataValues = {
+      ...user.dataValues,
+      password: null,
+    };
 
-  if (user) {
-    const responseData = responseWithJWT(req, user.dataValues, user.dataValues);
-    res.status(200).json(responseData);
-  } else {
-    res.status(500).json({ err: true });
+    if (user) {
+      const responseData = responseWithJWT(
+        req,
+        user.dataValues,
+        user.dataValues
+      );
+      res.status(200).json(responseData);
+    } else {
+      res.status(500).json({ err: true });
+    }
+  } catch (err) {
+    res.status(500).json(err);
   }
 };
 

@@ -173,7 +173,6 @@ export const routesConfig = {
 };
 
 export const checkConfigJWT = (urlString) => {
-  console.log("in");
   const urlParts = urlString.split("/");
   let config = routesConfig;
 
@@ -185,12 +184,9 @@ export const checkConfigJWT = (urlString) => {
     if (config[part]) {
       config = config[part];
     } else {
-      console.log("return null");
       return null;
     }
   }
-
-  console.log({ jwt: config.jwt, role: config.role });
 
   return { jwt: config.jwt, role: config.role };
 };
