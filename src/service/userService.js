@@ -46,19 +46,6 @@ const mailing = async (subject, text, toGmail) => {
   });
 };
 
-const emailCheck = async (email) => {
-  return new Promise((resolve, reject) => {
-    console.log("in");
-    emailExistence.check(email, function (error, response) {
-      if (error) {
-        reject(false);
-      } else {
-        resolve(response);
-      }
-    });
-  });
-};
-
 export const createOtp = async (req, res) => {
   try {
     const user = await db.User.findOne({
@@ -125,32 +112,26 @@ export const getPassword = async (req, res) => {
 
 export const createUser = async (req, res) => {
   try {
-    const emailResponse = await emailCheck(req.body.email);
-    console.log("out");
-    if (emailResponse === true) {
-      await mailing(
-        "Account Verification",
-        `Your account ${req.body.account} is linked to this Gmail. This will assist you in case you forget your password.`,
-        req.body.email
-      );
-      const user = await db.User.create(req.body);
-      if (user.dataValues.roleName === "User") {
-        db.Customer.create({
-          userId: user.dataValues.id,
-          money: 0,
-        });
-      }
-      if (user.dataValues.roleName === "Seller") {
-        db.Seller.create({
-          sellerId: user.dataValues.id,
-          totalMoney: 0,
-          permit: true,
-        });
-      }
-      res.status(200).json("OK");
-    } else {
-      res.status(500).json("Email doesn't exist");
+    await mailing(
+      "Account Verification",
+      `Your account ${req.body.account} is linked to this Gmail. This will assist you in case you forget your password.`,
+      req.body.email
+    );
+    const user = await db.User.create(req.body);
+    if (user.dataValues.roleName === "User") {
+      db.Customer.create({
+        userId: user.dataValues.id,
+        money: 0,
+      });
     }
+    if (user.dataValues.roleName === "Seller") {
+      db.Seller.create({
+        sellerId: user.dataValues.id,
+        totalMoney: 0,
+        permit: true,
+      });
+    }
+    res.status(200).json("OK");
   } catch (err) {
     res.status(500).json(err);
   }
