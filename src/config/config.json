@@ -15,10 +15,10 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "freedb_tranminhquang",
-    "password": "Tw4xD2wb*@54Sd6",
-    "database": "freedb_venedor",
-    "host": "sql.freedb.tech",
+    "username": "sql12626635",
+    "password": "hzM1nEcLMI",
+    "database": "sql12626635",
+    "host": "sql12.freesqldatabase.com",
     "dialect": "mysql",
     "port": "3306"
   }
