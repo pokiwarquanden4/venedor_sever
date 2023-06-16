@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 export const createJWT = (data) => {
   const user = {
     account: data.account,
-    roleId: data.roleId,
+    roleName: data.roleName,
   };
   const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
@@ -14,7 +14,7 @@ export const createJWT = (data) => {
 export const createRefreshToken = (data) => {
   const user = {
     account: data.account,
-    roleId: data.roleId,
+    roleName: data.roleName,
   };
   const refreshToken = jwt.sign(user, process.env.REFRESH_TOKEN_SECRET, {
     expiresIn: "4h",
@@ -35,7 +35,7 @@ export const authenJWT = (req, res) => {
         if (err) {
           res.status(401).json("Token is invalid");
         } else {
-          if (user.roleId === req.body.role) {
+          if (user.roleName === req.body.role) {
             users = user;
             users.refreshToken = true;
           } else {
@@ -44,7 +44,7 @@ export const authenJWT = (req, res) => {
         }
       });
     } else {
-      if (user.roleId === req.body.role) {
+      if (user.roleName === req.body.role) {
         users = user;
       } else {
         res.status(401).json("You don't have permission");

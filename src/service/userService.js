@@ -132,13 +132,13 @@ export const createUser = async (req, res) => {
         req.body.email
       );
       const user = await db.User.create(req.body);
-      if (user.dataValues.roleId === "User") {
+      if (user.dataValues.roleName === "User") {
         db.Customer.create({
           userId: user.dataValues.id,
           money: 0,
         });
       }
-      if (user.dataValues.roleId === "Seller") {
+      if (user.dataValues.roleName === "Seller") {
         db.Seller.create({
           sellerId: user.dataValues.id,
           totalMoney: 0,

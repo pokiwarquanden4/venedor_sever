@@ -1,11 +1,10 @@
 {
   "development": {
-    "username": "freedb_tranminhquang",
-    "password": "Tw4xD2wb*@54Sd6",
-    "database": "freedb_venedor",
-    "host": "sql.freedb.tech",
-    "dialect": "mysql",
-    "port": "3306"
+    "username": "root",
+    "password": null,
+    "database": "fullstack",
+    "host": "127.0.0.1",
+    "dialect": "mysql"
   },
   "test": {
     "username": "root",
@@ -15,11 +14,17 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "sql12626635",
-    "password": "hzM1nEcLMI",
-    "database": "sql12626635",
-    "host": "sql12.freesqldatabase.com",
-    "dialect": "mysql",
-    "port": "3306"
+    "username": "postgres",
+    "password": "tranminhquang",
+    "database": "postgres",
+    "host": "db.ympmcprkhsxuftqwcqup.supabase.co",
+    "dialect": "postgres",
+    "port": "5432",
+    "dialectOptions": {
+      "ssl": {
+        "require": true,
+        "rejectUnauthorized": false
+      }
+    }
   }
 }
