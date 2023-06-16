@@ -1,7 +1,7 @@
 {
   "development": {
     "username": "freedb_tranminhquang",
-    "password": "?sZvH@G2Z$a!k?J",
+    "password": "Tw4xD2wb*@54Sd6",
     "database": "freedb_venedor",
     "host": "sql.freedb.tech",
     "dialect": "mysql",
@@ -16,7 +16,7 @@
   },
   "production": {
     "username": "freedb_tranminhquang",
-    "password": "?sZvH@G2Z$a!k?J",
+    "password": "Tw4xD2wb*@54Sd6",
     "database": "freedb_venedor",
     "host": "sql.freedb.tech",
     "dialect": "mysql",
