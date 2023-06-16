@@ -15,7 +15,6 @@ app.use(express.urlencoded({ extended: true }));
 //Routes
 initWebRoutes(app);
 
-connectDB();
 db.sequelize.sync().then((req) => {
   app.listen(port, () => {
     console.log("Running on port: " + port);
