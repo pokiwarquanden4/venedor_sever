@@ -166,12 +166,12 @@ export const loginUser = async (req, res) => {
 
     console.log(user);
     if (user) {
+      console.log(user.dataValues);
       const responseData = responseWithJWT(
         req,
         user.dataValues,
         user.dataValues
       );
-      console.log(responseData);
       res.status(200).json(responseData);
     } else {
       console.log("err");
