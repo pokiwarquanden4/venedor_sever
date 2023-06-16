@@ -139,6 +139,7 @@ export const createUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
+    console.log("service in");
     req.body.refreshToken = true;
     const data = req.query;
     const user = await db.User.findOne({
@@ -164,16 +165,21 @@ export const loginUser = async (req, res) => {
       password: null,
     };
 
+    console.log(user);
     if (user) {
       const responseData = responseWithJWT(
         req,
         user.dataValues,
         user.dataValues
       );
+      console.log(responseData);
       res.status(200).json(responseData);
     } else {
+      console.log("err");
       res.status(500).json({ err: true });
     }
+
+    console.log("service out");
   } catch (err) {
     res.status(500).json(err);
   }
