@@ -139,9 +139,8 @@ export const createUser = async (req, res) => {
 
 export const loginUser = async (req, res) => {
   try {
-    console.log("service in");
     req.body.refreshToken = true;
-    const data = req.body;
+    const data = req.query;
     const user = await db.User.findOne({
       include: [
         {
@@ -178,9 +177,8 @@ export const loginUser = async (req, res) => {
       console.log("err");
       res.status(500).json({ err: true });
     }
-
-    console.log("service out");
   } catch (err) {
+    console.log("service out");
     res.status(500).json(err);
   }
 };

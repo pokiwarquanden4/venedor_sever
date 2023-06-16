@@ -23,7 +23,6 @@ export const createRefreshToken = (data) => {
 };
 
 export const authenJWT = (req, res) => {
-  console.log("in authen");
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
   let users;
@@ -52,7 +51,6 @@ export const authenJWT = (req, res) => {
       }
     }
   });
-  console.log("out authen");
   return users;
 };
 

@@ -198,7 +198,6 @@ export const searchProduct = async (req, res) => {
     const response = responseWithJWT(req, products);
     res.status(200).json(response);
   } catch (err) {
-    console.log(err);
     res.status(500).json(err);
   }
 };
@@ -214,7 +213,6 @@ export const searchProductById = async (req, res) => {
     const response = responseWithJWT(req, products);
     res.status(200).json(response);
   } catch (err) {
-    console.log(err);
     res.status(500).json(err);
   }
 };
@@ -236,7 +234,6 @@ export const searchCategoryProduct = async (req, res) => {
     const response = responseWithJWT(req, products);
     res.status(200).json(response);
   } catch (err) {
-    console.log(err);
     res.status(500).json(err);
   }
 };
