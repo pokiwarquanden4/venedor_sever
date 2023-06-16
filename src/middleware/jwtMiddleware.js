@@ -3,6 +3,7 @@ import { authenJWT } from "../service/jwt/jwtService";
 
 const jwtMiddleware = async (req, res, next) => {
   try {
+    console.log("in jwt middle");
     const config = checkConfigJWT(req.originalUrl);
     if (config.jwt) {
       req.body.role = config.role;

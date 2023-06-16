@@ -188,5 +188,7 @@ export const checkConfigJWT = (urlString) => {
     }
   }
 
+  console.log("out check configJWT");
+
   return { jwt: config.jwt, role: config.role };
 };
