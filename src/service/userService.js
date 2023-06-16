@@ -48,6 +48,7 @@ const mailing = async (subject, text, toGmail) => {
 
 const emailCheck = async (email) => {
   return new Promise((resolve, reject) => {
+    console.log("in");
     emailExistence.check(email, function (error, response) {
       if (error) {
         reject(false);
@@ -125,6 +126,7 @@ export const getPassword = async (req, res) => {
 export const createUser = async (req, res) => {
   try {
     const emailResponse = await emailCheck(req.body.email);
+    console.log("out");
     if (emailResponse === true) {
       await mailing(
         "Account Verification",
