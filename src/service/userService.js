@@ -141,7 +141,7 @@ export const loginUser = async (req, res) => {
   try {
     console.log("service in");
     req.body.refreshToken = true;
-    const data = req.query;
+    const data = req.body;
     const user = await db.User.findOne({
       include: [
         {
