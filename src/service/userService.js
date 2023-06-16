@@ -141,11 +141,11 @@ export const loginUser = async (req, res) => {
   // try {
 
   // } catch (err) {
-  //   console.log("service out");
   //   res.status(500).json(err);
   // }
+  console.log("service in");
   req.body.refreshToken = true;
-  const data = req.body;
+  const data = req.query;
   const user = await db.User.findOne({
     include: [
       {
@@ -169,13 +169,10 @@ export const loginUser = async (req, res) => {
     password: null,
   };
 
-  console.log(user);
   if (user) {
-    console.log(user.dataValues);
     const responseData = responseWithJWT(req, user.dataValues, user.dataValues);
     res.status(200).json(responseData);
   } else {
-    console.log("err");
     res.status(500).json({ err: true });
   }
 };

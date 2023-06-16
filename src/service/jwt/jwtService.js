@@ -5,7 +5,6 @@ export const createJWT = (data) => {
     account: data.account,
     roleName: data.roleName,
   };
-  console.log(process.env.ACCESS_TOKEN_SECRET);
   const accessToken = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
     expiresIn: "15m",
   });

@@ -34,7 +34,7 @@ import {
 //Routers
 const userRouter = express.Router();
 
-userRouter.post(
+userRouter.get(
   routesConfig.users.login.name,
   jwtMiddlewareController,
   loginUserController
