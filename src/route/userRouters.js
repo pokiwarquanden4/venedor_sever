@@ -21,6 +21,7 @@ import {
   loginUserController,
   purchaseController,
   wishListController,
+  sendCreateAccountOTPController,
 } from "../controller/controllerUser";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
@@ -163,6 +164,12 @@ userRouter.get(
   routesConfig.users.getFeatureProduct.name,
   jwtMiddlewareController,
   getFeatureProductController
+);
+
+userRouter.post(
+  routesConfig.users.sendCreateAccountOTP.name,
+  jwtMiddlewareController,
+  sendCreateAccountOTPController
 );
 
 export default userRouter;

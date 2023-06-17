@@ -1,6 +1,5 @@
 import db from "../models/index";
 import { responseWithJWT } from "./jwt/jwtService";
-import emailExistence from "email-existence";
 import nodemailer from "nodemailer";
 
 function generateRandomNumber() {
@@ -110,48 +109,66 @@ export const getPassword = async (req, res) => {
   }
 };
 
-// const emailCheck = async (email) => {
-//   return new Promise((resolve, reject) => {
-//     emailExistence.check(email, function (error, response) {
-//       if (error) {
-//         console.log("err: " + error);
-//         reject(false);
-//       } else {
-//         console.log("response: " + response);
-//         resolve(response);
-//       }
-//     });
-//   });
-// };
+export const sendCreateAccountOTP = async (req, res) => {
+  try {
+    const randomOtp = generateRandomNumber();
+    const expirationTime = new Date();
+    expirationTime.setTime(expirationTime.getTime() + 10 * 60000); // Thêm 10 phút (10 * 60000 milliseconds) vào thời gian hiện tại
+
+    await db.Otp.create({
+      email: req.body.email,
+      account: req.body.account,
+      otp: randomOtp,
+      expired: expirationTime,
+    });
+
+    await mailing(
+      "Account Verification",
+      `Your account ${req.body.account} is linked to this Gmail. This will assist you in case you forget your password.\nOTP: ${randomOtp}`,
+      req.body.email
+    );
+    res.status(200).json("OK");
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
 
 export const createUser = async (req, res) => {
   try {
-    // const emailResponse = await emailCheck(req.body.email);
-    // if (emailResponse === true) {
+    const validOtp = await db.Otp.findOne({
+      where: {
+        email: req.body.email,
+        account: req.body.account,
+      },
+      order: [["createdAt", "DESC"]],
+      limit: 1,
+    });
 
-    // } else {
-    //   res.status(500).json("Email doesn't exist");
-    // }
-    await mailing(
-      "Account Verification",
-      `Your account ${req.body.account} is linked to this Gmail. This will assist you in case you forget your password.`,
-      req.body.email
-    );
-    const user = await db.User.create(req.body);
-    if (user.dataValues.roleName === "User") {
-      db.Customer.create({
-        userId: user.dataValues.id,
-        money: 0,
-      });
+    console.log(validOtp);
+    const currentTime = new Date();
+    if (
+      validOtp &&
+      validOtp.dataValues.otp === req.body.otp &&
+      new Date(validOtp.dataValues.expired) > currentTime
+    ) {
+      const user = await db.User.create(req.body);
+      if (user.dataValues.roleName === "User") {
+        db.Customer.create({
+          userId: user.dataValues.id,
+          money: 0,
+        });
+      }
+      if (user.dataValues.roleName === "Seller") {
+        db.Seller.create({
+          sellerId: user.dataValues.id,
+          totalMoney: 0,
+          permit: true,
+        });
+      }
+      res.status(200).json("OK");
+    } else {
+      res.status(500).json("Otp is not valid");
     }
-    if (user.dataValues.roleName === "Seller") {
-      db.Seller.create({
-        sellerId: user.dataValues.id,
-        totalMoney: 0,
-        permit: true,
-      });
-    }
-    res.status(200).json("OK");
   } catch (err) {
     res.status(500).json(err);
   }

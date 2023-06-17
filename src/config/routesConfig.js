@@ -126,6 +126,11 @@ export const routesConfig = {
       jwt: false,
       role: undefined,
     },
+    sendCreateAccountOTP: {
+      name: "/sendCreateAccountOTP",
+      jwt: false,
+      role: undefined,
+    },
   },
   sellers: {
     name: "/sellers",
