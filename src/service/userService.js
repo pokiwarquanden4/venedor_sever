@@ -455,18 +455,20 @@ export const getCartProduct = async (req, res) => {
 
       const carts = await db.Cart.findAll(
         {
+          where: {
+            userId: user.dataValues.id,
+          },
+        },
+        {
           include: [
             {
               model: db.Storage,
             },
           ],
-        },
-        {
-          where: {
-            userId: user.dataValues.id,
-          },
         }
       );
+      console.log(user.dataValues.id);
+      console.log(carts);
       const obj = [];
       carts.forEach((item) => {
         obj.push({
