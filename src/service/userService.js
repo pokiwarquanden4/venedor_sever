@@ -453,29 +453,25 @@ export const getCartProduct = async (req, res) => {
         },
       });
 
-      const carts = await db.Cart.findAll(
-        {
-          where: {
-            userId: user.dataValues.id,
+      const carts = await db.Cart.findAll({
+        include: [
+          {
+            model: db.Storage,
           },
+        ],
+        where: {
+          userId: user.dataValues.id,
         },
-        {
-          include: [
-            {
-              model: db.Storage,
-            },
-          ],
-        }
-      );
-      console.log(user.dataValues.id);
-      console.log(carts);
-      const obj = [];
-      carts.forEach((item) => {
-        obj.push({
-          cartQuantity: item.dataValues.quantity,
-          ...item.dataValues.Storage.dataValues,
-        });
       });
+      const obj = [];
+      if (carts.length > 0) {
+        carts.forEach((item) => {
+          obj.push({
+            cartQuantity: item.dataValues.quantity,
+            ...item.dataValues.Storage.dataValues,
+          });
+        });
+      }
 
       const response = responseWithJWT(req, obj, user);
       res.status(200).json(response);
