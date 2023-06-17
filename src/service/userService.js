@@ -138,44 +138,45 @@ export const createUser = async (req, res) => {
 };
 
 export const loginUser = async (req, res) => {
-  try {
-    req.body.refreshToken = true;
-    const data = req.query;
-    const user = await db.User.findOne({
-      include: [
-        {
-          model: db.Customer,
-        },
-        {
-          model: db.Seller,
-        },
-        {
-          model: db.WishList,
-        },
-      ],
-      where: {
-        account: data.account,
-        password: data.password,
+  // try {
+
+  // } catch (err) {
+  //   res.status(500).json(err);
+  // }
+  console.log("in");
+  req.body.refreshToken = true;
+  const data = req.query;
+  const user = await db.User.findOne({
+    include: [
+      {
+        model: db.Customer,
       },
-    });
+      {
+        model: db.Seller,
+      },
+      {
+        model: db.WishList,
+      },
+    ],
+    where: {
+      account: data.account,
+      password: data.password,
+    },
+  });
+  console.log("out");
 
-    user.dataValues = {
-      ...user.dataValues,
-      password: null,
-    };
+  user.dataValues = {
+    ...user.dataValues,
+    password: null,
+  };
 
-    if (user) {
-      const responseData = responseWithJWT(
-        req,
-        user.dataValues,
-        user.dataValues
-      );
-      res.status(200).json(responseData);
-    } else {
-      res.status(500).json({ err: true });
-    }
-  } catch (err) {
-    res.status(500).json(err);
+  console.log("in");
+  if (user) {
+    const responseData = responseWithJWT(req, user.dataValues, user.dataValues);
+    res.status(200).json(responseData);
+  } else {
+    console.log("out");
+    res.status(500).json({ err: true });
   }
 };
 
@@ -411,30 +412,32 @@ export const getCartProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
       const user = await db.User.findOne({
-        include: [
-          {
-            model: db.Cart,
-          },
-        ],
         where: {
           account: req.body.jwtAccount,
         },
       });
-      const productIdList = [];
-      user.dataValues.Carts.forEach((item) => {
-        productIdList.push(item.productId);
-      });
 
-      const obj = await db.Storage.findAll({
-        where: {
-          id: productIdList,
+      const carts = await db.Cart.findAll(
+        {
+          include: [
+            {
+              model: db.Storage,
+            },
+          ],
         },
+        {
+          where: {
+            userId: user.dataValues.id,
+          },
+        }
+      );
+      const obj = [];
+      carts.forEach((item) => {
+        obj.push({
+          cartQuantity: item.dataValues.quantity,
+          ...item.dataValues.Storage.dataValues,
+        });
       });
-
-      for (let i = 0; i < obj.length; i++) {
-        obj[i].dataValues.cartQuantity =
-          user.dataValues.Carts[i].dataValues.quantity;
-      }
 
       const response = responseWithJWT(req, obj, user);
       res.status(200).json(response);
