@@ -110,73 +110,91 @@ export const getPassword = async (req, res) => {
   }
 };
 
+const emailCheck = async (email) => {
+  return new Promise((resolve, reject) => {
+    emailExistence.check(email, function (error, response) {
+      if (error) {
+        console.log("err: " + error);
+        reject(false);
+      } else {
+        console.log("response: " + response);
+        resolve(response);
+      }
+    });
+  });
+};
+
 export const createUser = async (req, res) => {
   try {
-    await mailing(
-      "Account Verification",
-      `Your account ${req.body.account} is linked to this Gmail. This will assist you in case you forget your password.`,
-      req.body.email
-    );
-    const user = await db.User.create(req.body);
-    if (user.dataValues.roleName === "User") {
-      db.Customer.create({
-        userId: user.dataValues.id,
-        money: 0,
-      });
+    const emailResponse = await emailCheck(req.body.email);
+    if (emailResponse === true) {
+      await mailing(
+        "Account Verification",
+        `Your account ${req.body.account} is linked to this Gmail. This will assist you in case you forget your password.`,
+        req.body.email
+      );
+      const user = await db.User.create(req.body);
+      if (user.dataValues.roleName === "User") {
+        db.Customer.create({
+          userId: user.dataValues.id,
+          money: 0,
+        });
+      }
+      if (user.dataValues.roleName === "Seller") {
+        db.Seller.create({
+          sellerId: user.dataValues.id,
+          totalMoney: 0,
+          permit: true,
+        });
+      }
+      res.status(200).json("OK");
+    } else {
+      res.status(500).json("Email doesn't exist");
     }
-    if (user.dataValues.roleName === "Seller") {
-      db.Seller.create({
-        sellerId: user.dataValues.id,
-        totalMoney: 0,
-        permit: true,
-      });
-    }
-    res.status(200).json("OK");
   } catch (err) {
     res.status(500).json(err);
   }
 };
 
 export const loginUser = async (req, res) => {
-  // try {
-
-  // } catch (err) {
-  //   res.status(500).json(err);
-  // }
-  console.log("in");
-  req.body.refreshToken = true;
-  const data = req.query;
-  const user = await db.User.findOne({
-    include: [
-      {
-        model: db.Customer,
+  try {
+    req.body.refreshToken = true;
+    const data = req.query;
+    const user = await db.User.findOne({
+      include: [
+        {
+          model: db.Customer,
+        },
+        {
+          model: db.Seller,
+        },
+        {
+          model: db.WishList,
+        },
+      ],
+      where: {
+        account: data.account,
+        password: data.password,
       },
-      {
-        model: db.Seller,
-      },
-      {
-        model: db.WishList,
-      },
-    ],
-    where: {
-      account: data.account,
-      password: data.password,
-    },
-  });
-  console.log("out");
+    });
 
-  user.dataValues = {
-    ...user.dataValues,
-    password: null,
-  };
-
-  console.log("in");
-  if (user) {
-    const responseData = responseWithJWT(req, user.dataValues, user.dataValues);
-    res.status(200).json(responseData);
-  } else {
-    console.log("out");
-    res.status(500).json({ err: true });
+    user.dataValues = {
+      ...user.dataValues,
+      password: null,
+    };
+    if (user) {
+      const responseData = responseWithJWT(
+        req,
+        user.dataValues,
+        user.dataValues
+      );
+      res.status(200).json(responseData);
+    } else {
+      console.log("out");
+      res.status(500).json({ err: true });
+    }
+  } catch (err) {
+    res.status(500).json(err);
   }
 };
 
