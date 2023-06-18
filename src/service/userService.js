@@ -685,13 +685,13 @@ export const cancelOrder = async (req, res) => {
         } else {
           const product = await db.Storage.findOne({
             where: {
-              id: req.body.productId,
+              id: history.dataValues.productId,
             },
           });
 
           await db.Storage.update(
             {
-              number: product.dataValues.number + req.body.number,
+              number: product.dataValues.number + history.dataValues.number,
             },
             {
               where: {
