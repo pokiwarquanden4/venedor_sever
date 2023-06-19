@@ -61,7 +61,7 @@ export const createProduct = async (req, res) => {
         listImgURL: listImgURL,
         disable: false,
       };
-      db.Storage.create(newProduct);
+      await db.Storage.create(newProduct);
 
       const response = responseWithJWT(req, newProduct, user);
       res.status(200).json(response);
