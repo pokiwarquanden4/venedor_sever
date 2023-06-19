@@ -53,6 +53,7 @@ export const createProduct = async (req, res) => {
 
       const newProduct = {
         ...req.body,
+        id: nextID,
         sellerId: user.id,
         shipping: 0,
         rate: 0,
