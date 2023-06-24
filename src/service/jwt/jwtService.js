@@ -35,7 +35,7 @@ export const authenJWT = (req, res) => {
         if (err) {
           res.status(401).json("Token is invalid");
         } else {
-          if (user.roleName === req.body.role) {
+          if (req.body.role === undefined || user.roleName === req.body.role) {
             users = user;
             users.refreshToken = true;
           } else {
@@ -44,7 +44,7 @@ export const authenJWT = (req, res) => {
         }
       });
     } else {
-      if (user.roleName === req.body.role) {
+      if (req.body.role === undefined || user.roleName === req.body.role) {
         users = user;
       } else {
         res.status(401).json("You don't have permission");

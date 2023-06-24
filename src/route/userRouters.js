@@ -31,6 +31,11 @@ import {
   getFeatureProductController,
   getLatestProductController,
 } from "../controller/controllerProduct";
+import {
+  createRoomChatController,
+  getAllRoomChatController,
+  getMessageByRoomChatController,
+} from "../controller/messageController";
 
 //Routers
 const userRouter = express.Router();
@@ -170,6 +175,24 @@ userRouter.post(
   routesConfig.users.sendCreateAccountOTP.name,
   jwtMiddlewareController,
   sendCreateAccountOTPController
+);
+
+userRouter.post(
+  routesConfig.users.createRoomChat.name,
+  jwtMiddlewareController,
+  createRoomChatController
+);
+
+userRouter.get(
+  routesConfig.users.getAllRoomChat.name,
+  jwtMiddlewareController,
+  getAllRoomChatController
+);
+
+userRouter.get(
+  routesConfig.users.getMessageByRoomChat.name,
+  jwtMiddlewareController,
+  getMessageByRoomChatController
 );
 
 export default userRouter;

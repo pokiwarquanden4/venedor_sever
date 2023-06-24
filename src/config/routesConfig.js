@@ -131,6 +131,21 @@ export const routesConfig = {
       jwt: false,
       role: undefined,
     },
+    createRoomChat: {
+      name: "/createRoomChat",
+      jwt: true,
+      role: "User",
+    },
+    getAllRoomChat: {
+      name: "/getAllRoomChat",
+      jwt: true,
+      role: undefined,
+    },
+    getMessageByRoomChat: {
+      name: "/getMessageByRoomChat",
+      jwt: true,
+      role: undefined,
+    },
   },
   sellers: {
     name: "/sellers",
