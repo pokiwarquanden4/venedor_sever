@@ -9,6 +9,9 @@ const socketConnection = (io) => {
       socket.to(data.roomId).emit(`receive_message`, data);
       createMessage(data);
     });
+    socket.on("exit_room", (data) => {
+      socket.leave(data);
+    });
   });
 };
 
