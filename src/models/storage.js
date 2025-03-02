@@ -48,6 +48,9 @@ module.exports = (sequelize, DataTypes) => {
       detailDescription: {
         type: DataTypes.TEXT,
       },
+      brandName: {
+        type: DataTypes.TEXT,
+      },
       number: {
         type: DataTypes.INTEGER,
         allowNull: false,
