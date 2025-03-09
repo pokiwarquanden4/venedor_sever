@@ -13,6 +13,9 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      commentNumber: {
+        type: DataTypes.INTEGER,
+      },
       money: {
         type: DataTypes.BIGINT,
         allowNull: false,

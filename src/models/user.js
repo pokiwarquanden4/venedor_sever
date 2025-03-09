@@ -46,6 +46,9 @@ module.exports = (sequelize, DataTypes) => {
     User.hasMany(models.Storage, {
       foreignKey: "sellerId",
     });
+    User.hasMany(models.Comment, {
+      foreignKey: "userId",
+    });
     User.hasMany(models.History, {
       foreignKey: "userId",
     });

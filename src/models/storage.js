@@ -5,7 +5,6 @@ module.exports = (sequelize, DataTypes) => {
     {
       id: {
         allowNull: false,
-        autoIncrement: true,
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
@@ -38,15 +37,12 @@ module.exports = (sequelize, DataTypes) => {
         },
       },
       rate: {
-        type: DataTypes.INTEGER,
+        type: DataTypes.FLOAT,
         allowNull: false,
       },
       description: {
         type: DataTypes.TEXT,
         allowNull: false,
-      },
-      detailDescription: {
-        type: DataTypes.TEXT,
       },
       brandName: {
         type: DataTypes.TEXT,
@@ -71,8 +67,8 @@ module.exports = (sequelize, DataTypes) => {
       listImgURL: {
         type: DataTypes.TEXT,
       },
-      category: {
-        type: DataTypes.STRING,
+      categoryId: {
+        type: DataTypes.INTEGER,
       },
       disable: {
         type: DataTypes.BOOLEAN,
@@ -87,6 +83,9 @@ module.exports = (sequelize, DataTypes) => {
   Storage.associate = (models) => {
     Storage.belongsTo(models.User, {
       foreignKey: "sellerId",
+    });
+    Storage.belongsTo(models.Category, {
+      foreignKey: "categoryId",
     });
     Storage.hasMany(models.History, {
       foreignKey: "productId",

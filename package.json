@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon --exec babel-node src/sever.js",
-    "build-src": "babel src -d build --copy-files"
+    "build-src": "babel src -d build --copy-files",
+    "initData": "node src/initData.js"
   },
   "author": "",
   "license": "ISC",

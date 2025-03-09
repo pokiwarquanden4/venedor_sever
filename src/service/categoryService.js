@@ -31,8 +31,7 @@ export const createProduct = async (req, res) => {
       for (let i = 0; i < req.files.length; i++) {
         const storageRef = ref(
           storage,
-          `Product/${user.account}/${nextID}/${i === 0 ? "main" : "all"}/${
-            req.files[i].originalname
+          `Product/${user.account}/${nextID}/${i === 0 ? "main" : "all"}/${req.files[i].originalname
           }`
         );
         const metadata = {
@@ -47,7 +46,7 @@ export const createProduct = async (req, res) => {
         if (i === 0) {
           imgURL = downloadURL;
         } else {
-          listImgURL += `___${downloadURL}`;
+          listImgURL += `_${downloadURL}`;
         }
       }
 
@@ -105,7 +104,7 @@ export const editProduct = async (req, res) => {
           account: req.body.jwtAccount,
         },
       });
-      let removeListImg = req.body.remove.split("___").splice(1);
+      let removeListImg = req.body.remove.split("_").splice(1);
 
       //Delete files in FireBase
       for (let i = 0; i < removeListImg.length; i++) {
@@ -125,8 +124,7 @@ export const editProduct = async (req, res) => {
       for (let i = 0; i < req.files.length; i++) {
         const storageRef = ref(
           storage,
-          `Product/${user.account}/${currentProduct.dataValues.id}/${
-            i === 0 && req.body.main === "true" ? "main" : "all"
+          `Product/${user.account}/${currentProduct.dataValues.id}/${i === 0 && req.body.main === "true" ? "main" : "all"
           }/${req.files[i].originalname}`
         );
         const metadata = {
@@ -141,7 +139,7 @@ export const editProduct = async (req, res) => {
         if (i === 0 && req.body.main === "true") {
           imgURL = downloadURL;
         } else {
-          listImgURL += `___${downloadURL}`;
+          listImgURL += `_${downloadURL}`;
         }
       }
 
@@ -149,7 +147,6 @@ export const editProduct = async (req, res) => {
         productName: req.body.productName,
         price: req.body.price,
         description: req.body.description,
-        detailDescription: req.body.detailDescription,
         number: req.body.number,
         saleOff: req.body.saleOff,
         category: req.body.category,
@@ -160,7 +157,7 @@ export const editProduct = async (req, res) => {
       }
       let newListImgURL = currentProduct.dataValues.listImgURL;
       for (let i = 0; i < removeListImg.length; i++) {
-        newListImgURL = newListImgURL.replace(`___${removeListImg[i]}`, "");
+        newListImgURL = newListImgURL.replace(`_${removeListImg[i]}`, "");
       }
       newListImgURL += listImgURL;
       obj.listImgURL = newListImgURL;

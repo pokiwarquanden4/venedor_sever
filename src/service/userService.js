@@ -144,7 +144,6 @@ export const createUser = async (req, res) => {
       limit: 1,
     });
 
-    console.log(validOtp);
     const currentTime = new Date();
     if (
       validOtp &&
