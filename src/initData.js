@@ -2,6 +2,7 @@
 const db = require("./models");
 const fs = require("fs");
 const path = require("path");
+const _ = require('lodash');
 
 async function insertCategories() {
     try {
@@ -24,35 +25,32 @@ async function insertCategories() {
     }
 }
 
-// const validateDataTypes = (data) => {
-//     const expectedTypes = {
-//         id: "number",
-//         sellerId: "number",
-//         productName: "string",
-//         price: "number",
-//         shipping: "number",
-//         sold: "number",
-//         rate: "number",
-//         description: "string",
-//         brandName: "string",
-//         number: "number",
-//         saleOff: "number",
-//         imgURL: "string",
-//         listImgURL: "string",
-//         categoryId: "number",
-//         disable: "boolean",
-//     };
+const lastNames = [
+    'Nguyễn', 'Trần', 'Lê', 'Phạm', 'Hoàng', 'Đặng', 'Bùi', 'Đỗ', 'Vũ', 'Phan',
+    'Huỳnh', 'Dương', 'Lý', 'Tô', 'Tạ', 'Châu', 'Hồ', 'Ngô', 'Tăng', 'Quách',
+    'Tôn', 'Hà', 'Cao', 'Đinh', 'Thái', 'Triệu', 'La', 'Lâm', 'Trịnh', 'Vương'
+];
 
-//     const errors = [];
+const middleNames = [
+    'Văn', 'Thị', 'Minh', 'Quang', 'Thanh', 'Ngọc', 'Công', 'Hồng', 'Đình', 'Xuân',
+    'Phúc', 'Tuấn', 'Hải', 'Anh', 'Đức', 'Bá', 'Chí', 'Hoài', 'Khánh', 'Tấn',
+    'Kiều', 'Linh', 'Tâm', 'Thành', 'Như', 'Trọng', 'Kim', 'Diệu', 'Quỳnh', 'Bảo'
+];
 
-//     for (const key in expectedTypes) {
-//         if (typeof data[key] !== expectedTypes[key]) {
-//             errors.push(`Type mismatch for ${key}: expected ${expectedTypes[key]}, got ${typeof data[key]}`);
-//         }
-//     }
+const firstNames = [
+    'An', 'Hoa', 'Tuấn', 'Huy', 'Lan', 'Tùng', 'Hà', 'Anh', 'Mai', 'Đức',
+    'Long', 'Khanh', 'Dũng', 'Hạnh', 'Phong', 'Thảo', 'Trinh', 'Hiếu', 'Hải', 'Linh',
+    'Sơn', 'Giang', 'Quý', 'Tiến', 'Nam', 'Vũ', 'Quân', 'Như', 'Hương', 'Uyên',
+    'Thắng', 'Bình', 'Nhật', 'Thịnh', 'Phát', 'Vinh', 'Cường', 'Trang', 'Bích', 'Tài'
+];
 
-//     return errors.length ? false : true;
-// };
+function getRandomElement(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function generateRandomName() {
+    return `${getRandomElement(lastNames)} ${getRandomElement(middleNames)} ${getRandomElement(firstNames)}`;
+}
 
 async function insertProducts() {
     try {
@@ -82,10 +80,10 @@ async function insertProducts() {
                 if (!seller) {
                     seller = await db.User.create({
                         id: product.seller_id,
-                        name: `Seller ${product.seller_id}`,
-                        email: `seller${product.seller_id}@example.com`,
+                        name: `${generateRandomName()}`,
+                        email: `seller${product.seller_id}@gmail.com`,
                         account: `seller${product.seller_id}`,
-                        password: "defaultPassword123", // Make sure to hash this in real projects
+                        password: "1234567890", // Make sure to hash this in real projects
                         roleName: "Seller"
                     });
 
@@ -138,59 +136,84 @@ async function insertProducts() {
 
 async function addComments() {
     try {
+        const results = [];
+        const userLists = []
+        const customerLists = []
 
-        const results = []
         // Read the JSON file
-        var rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
+        const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
         const listMenu = JSON.parse(rawData);
 
-        listMenu.forEach((menu) => {
+        for (const menu of listMenu) {
             const linkParts = menu.link.split("/");
             const urlKey = linkParts[linkParts.length - 2];
-            const rawDataProduct = fs.readFileSync(`src/data/products/${urlKey}/products.json`, 'utf-8');
-            const rawDataProductDetails = fs.readFileSync(`src/data/products/${urlKey}/productDetails.json`, 'utf-8');
-            const rawDataProductComments = fs.readFileSync(`src/data/products/${urlKey}/productComments.json`, 'utf-8');
 
-            //Data json
-            const products = JSON.parse(rawDataProduct);
-            const productDetails = JSON.parse(rawDataProductDetails);
+            const rawDataProductComments = fs.readFileSync(`src/data/products/${urlKey}/productCommentsConvert.json`, 'utf-8');
+
+            // Parse JSON data
             const productComments = JSON.parse(rawDataProductComments);
 
-            products.forEach((product, index) => {
-                const productDetail = productDetails[index]
-                const productComment = productComments[product.id]
-                Object.keys(productComment).map((k) => {
-                    const data = productComment[k]
-                    const commentList = data.data
-                    commentList.forEach((c) => {
-                        results.push(
-                            {
-                                id: c.id,
-                                parentId: null,
-                                productId: c.product_id,
-                                userId: c.customer_id,
-                                rate: c.rating,
-                                content: c.content,
-                            }
-                        )
-                        c.comments.forEach((subComment) => {
-                            results.push(
-                                {
-                                    id: subComment.id,
-                                    parentId: subComment.review_id,
-                                    productId: c.product_id,
-                                    userId: subComment.customer_id,
-                                    rate: null,
-                                    content: subComment.content,
-                                }
-                            )
-                        })
-                    })
-                })
-            })
-        })
+            for (let i = 0; i < productComments.length; i++) {
+                const data = productComments[i];
 
-        await db.Comment.bulkCreate(results, { ignoreDuplicates: true });
+                // Check if user exists
+                let user = await db.User.findOne({ where: { id: data.userId } });
+
+                // If user doesn't exist, create a new one
+                if (!user) {
+                    userLists.push({
+                        id: data.userId,
+                        name: `${generateRandomName()}`,
+                        email: `user${data.userId}@example.com`,
+                        account: `user${data.userId}`,
+                        password: "1234567890", // Ensure to hash this in production
+                        roleName: "User",
+                    })
+
+                    customerLists.push({
+                        userId: data.userId,
+                        money: 0,
+                    })
+                }
+
+                results.push({
+                    id: data.id,
+                    parentId: data.parentId,
+                    productId: data.productId,
+                    userId: data.userId,
+                    rate: data.rate,
+                    content: data.content,
+                    createdAt: data.createdAt
+                });
+            }
+        }
+
+        // Insert in chunks to avoid memory overload
+        const chunkArray = (array, chunkSize) =>
+            Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+                array.slice(i * chunkSize, i * chunkSize + chunkSize)
+            );
+
+        //Chunk User
+        var chunkSize = 100;
+        var dataChunks = chunkArray(userLists, chunkSize);
+        for (var chunk of dataChunks) {
+            await db.User.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
+        }
+
+        //Chunk Comment
+        var chunkSize = 100;
+        var dataChunks = chunkArray(customerLists, chunkSize);
+        for (var chunk of dataChunks) {
+            await db.Customer.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
+        }
+
+        //Chunk Comment
+        var chunkSize = 100;
+        var dataChunks = chunkArray(results, chunkSize);
+        for (var chunk of dataChunks) {
+            await db.Comment.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
+        }
 
         console.log("✅ Comment inserted successfully!");
     } catch (error) {
@@ -198,12 +221,37 @@ async function addComments() {
     }
 }
 
+
+// //Add random name and day
+
+// async function bulkUpdateRandomNames() {
+//     try {
+//         const records = await db.User.findAll({ attributes: ['id'] }); // Only fetch IDs
+//         const updates = records.map(record => ({
+//             id: record.id,
+//             name: generateRandomName(),
+//         }));
+
+//         const chunkSize = 100; // Adjust based on your DB performance
+//         const updateChunks = _.chunk(updates, chunkSize);
+
+//         for (const chunk of updateChunks) {
+//             await db.User.bulkCreate(chunk, { updateOnDuplicate: ['name'] });
+//         }
+
+//         console.log('All names updated successfully!');
+//     } catch (error) {
+//         console.error('Error in bulk update:', error);
+//     }
+// }
+
+
 // Run the function
 async function run() {
     try {
         // await insertCategories();
         // await insertProducts();
-        // await addComments();
+        await addComments();
     } catch (error) {
         console.error("❌ Error running script:", error);
     }
