@@ -11,11 +11,6 @@ module.exports = (sequelize, DataTypes) => {
             parentId: {
                 type: DataTypes.INTEGER,
                 allowNull: true,
-                references: {
-                    model: "Categories", // Table name, not model name
-                    key: "id",
-                },
-                onDelete: "CASCADE",
             },
             productId: {
                 type: DataTypes.INTEGER,
@@ -41,6 +36,9 @@ module.exports = (sequelize, DataTypes) => {
     Comment.associate = (models) => {
         Comment.belongsTo(models.User, {
             foreignKey: "userId",
+        });
+        Comment.belongsTo(models.Storage, {
+            foreignKey: "productId",
         });
         Comment.hasMany(models.Comment, {
             foreignKey: "parentId",

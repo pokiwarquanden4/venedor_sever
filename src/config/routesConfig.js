@@ -131,6 +131,21 @@ export const routesConfig = {
       jwt: false,
       role: undefined,
     },
+    getComment: {
+      name: "/getComment",
+      jwt: false,
+      role: undefined,
+    },
+    getCategory: {
+      name: "/getCategory",
+      jwt: false,
+      role: undefined,
+    },
+    addComment: {
+      name: "/addComment",
+      jwt: true,
+      role: undefined,
+    },
     createRoomChat: {
       name: "/createRoomChat",
       jwt: true,

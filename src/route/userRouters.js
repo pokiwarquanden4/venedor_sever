@@ -26,7 +26,10 @@ import {
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
 import {
+  addCommentController,
   getBestSellerProductController,
+  getCatgoryController,
+  getCommentController,
   getDailyDealsProductController,
   getFeatureProductController,
   getLatestProductController,
@@ -193,6 +196,24 @@ userRouter.get(
   routesConfig.users.getMessageByRoomChat.name,
   jwtMiddlewareController,
   getMessageByRoomChatController
+);
+
+userRouter.get(
+  routesConfig.users.getComment.name,
+  jwtMiddlewareController,
+  getCommentController
+);
+
+userRouter.get(
+  routesConfig.users.getCategory.name,
+  jwtMiddlewareController,
+  getCatgoryController
+);
+
+userRouter.post(
+  routesConfig.users.addComment.name,
+  jwtMiddlewareController,
+  addCommentController
 );
 
 export default userRouter;

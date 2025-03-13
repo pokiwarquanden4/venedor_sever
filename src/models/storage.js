@@ -93,6 +93,9 @@ module.exports = (sequelize, DataTypes) => {
     Storage.hasMany(models.Cart, {
       foreignKey: "productId",
     });
+    Storage.hasMany(models.Comment, {
+      foreignKey: "productId",
+    });
     Storage.hasOne(models.DailyDeal, {
       foreignKey: "productId",
     });

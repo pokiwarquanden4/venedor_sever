@@ -11,7 +11,9 @@ import {
   getLatestProduct,
   getBestSellerProduct,
   getFeatureProduct,
+  getCatoryList,
 } from "../service/categoryService";
+import { addComment, getCommentOfProduct } from "../service/commentService";
 
 export const createProductController = async (req, res) => {
   return await createProduct(req, res);
@@ -54,4 +56,14 @@ export const getBestSellerProductController = async (req, res) => {
 };
 export const getFeatureProductController = async (req, res) => {
   return await getFeatureProduct(req, res);
+};
+
+export const getCommentController = async (req, res) => {
+  return await getCommentOfProduct(req, res);
+};
+export const getCatgoryController = async (req, res) => {
+  return await getCatoryList(req, res);
+};
+export const addCommentController = async (req, res) => {
+  return await addComment(req, res);
 };
