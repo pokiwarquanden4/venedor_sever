@@ -108,6 +108,7 @@ async function insertProducts() {
                     saleOff: Math.round(((product.original_price - product.price) / product.original_price) * 100),
                     imgURL: product.thumbnail_url,
                     listImgURL: productDetail.images.map((img) => img.base_url).join("_"),
+                    categoryList: product.primary_category_path,
                     categoryId: categoryId,
                     disable: false
                 });
@@ -164,7 +165,7 @@ async function addComments() {
                     userLists.push({
                         id: data.userId,
                         name: `${generateRandomName()}`,
-                        email: `user${data.userId}@example.com`,
+                        email: `user${data.userId}@gmail.com`,
                         account: `user${data.userId}`,
                         password: "1234567890", // Ensure to hash this in production
                         roleName: "User",
@@ -220,31 +221,6 @@ async function addComments() {
         console.error("❌ Error inserting categories:", error);
     }
 }
-
-
-// //Add random name and day
-
-// async function bulkUpdateRandomNames() {
-//     try {
-//         const records = await db.User.findAll({ attributes: ['id'] }); // Only fetch IDs
-//         const updates = records.map(record => ({
-//             id: record.id,
-//             name: generateRandomName(),
-//         }));
-
-//         const chunkSize = 100; // Adjust based on your DB performance
-//         const updateChunks = _.chunk(updates, chunkSize);
-
-//         for (const chunk of updateChunks) {
-//             await db.User.bulkCreate(chunk, { updateOnDuplicate: ['name'] });
-//         }
-
-//         console.log('All names updated successfully!');
-//     } catch (error) {
-//         console.error('Error in bulk update:', error);
-//     }
-// }
-
 
 // Run the function
 async function run() {

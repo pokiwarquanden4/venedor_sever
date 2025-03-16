@@ -1,3 +1,4 @@
+import askChatbot from "../chatbot/chatbot";
 import db from "../models/index";
 import { responseWithJWT } from "./jwt/jwtService";
 import { Op } from "sequelize";
@@ -123,6 +124,19 @@ export const createMessage = async (data) => {
       isSeller: data.isSeller,
       content: data.content,
     });
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const askAI = async (req, res) => {
+  try {
+    const { message } = req.query;
+    console.log(message)
+    const data = askChatbot(message)
+
+    const response = responseWithJWT(req, data);
+    res.status(200).json(response);
   } catch (err) {
     console.log(err);
   }

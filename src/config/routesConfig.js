@@ -6,6 +6,11 @@ export const routesConfig = {
       jwt: false,
       role: undefined,
     },
+    askAI: {
+      name: "/askAI",
+      jwt: false,
+      role: undefined,
+    },
     createUser: {
       name: "/createUser",
       jwt: false,

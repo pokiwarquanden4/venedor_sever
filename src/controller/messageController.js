@@ -1,4 +1,5 @@
 import {
+  askAI,
   createRoomChat,
   getAllRoomChat,
   getMessageByRoomChat,
@@ -12,4 +13,7 @@ export const getAllRoomChatController = async (req, res) => {
 };
 export const getMessageByRoomChatController = async (req, res) => {
   return await getMessageByRoomChat(req, res);
+};
+export const askAIController = async (req, res) => {
+  return await askAI(req, res);
 };

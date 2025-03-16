@@ -35,6 +35,7 @@ import {
   getLatestProductController,
 } from "../controller/controllerProduct";
 import {
+  askAIController,
   createRoomChatController,
   getAllRoomChatController,
   getMessageByRoomChatController,
@@ -214,6 +215,12 @@ userRouter.post(
   routesConfig.users.addComment.name,
   jwtMiddlewareController,
   addCommentController
+);
+
+userRouter.post(
+  routesConfig.users.askAI.name,
+  jwtMiddlewareController,
+  askAIController
 );
 
 export default userRouter;
