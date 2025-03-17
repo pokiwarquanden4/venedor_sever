@@ -1,72 +1,78 @@
 import { sequelize } from "../../config/connectDB"
+import { getBrandProductQuery, getDiscountQuery, getHotProductQuery, getPriceQuery } from "../getData"
 import classificationAgent from "./classification_agent"
 import guard_agent from "./guard_agent"
 import recommentAgent from "./recomment_agent"
 import recomment_classification from "./recomment_classification"
 import recommentCategoryAgent from "./recommentCategory"
 
-const agentController = (preData, message) => {
-    //Guard
-    console.log('Guard')
-    const guardData = JSON.parse(guard_agent(preData, message))
+const agentController = async (preData, message) => {
+    // Guard
+    const guardData = await guard_agent(preData, message)
     const guard_decision = guardData.decision
     if (guard_decision !== 'allowed') return
 
-    console.log('Classification')
-    //Classification
-    const classify = JSON.parse(classificationAgent(preData, message))
+    // Classification
+    const classify = await classificationAgent(preData, message)
+
     if (classify.decision === 'details_agent') {
-
+        // Handle details agent
     } else if (classify.decision === 'order_taking_agent') {
-
+        // Handle order agent
     } else if (classify.decision === 'recommendation_agent') {
-        //Filter by big category
-        const recomment = JSON.parse(recommentAgent(preData, message))
+        // Filter by big category
+        const recomment = await recommentAgent(preData, message)
         const recommentId = recomment.decision
 
-        //Filter by category
-        const recommentByCategory = JSON.parse(recommentCategoryAgent(preData, message, recommentId))
+
+        // Filter by category
+        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
         const categoryId = recommentByCategory.decision
 
-        //Classification filtering
-        const classification = JSON.parse(recomment_classification(preData, message))
-        const classify = {
-            decision: classification.decision,
-            subtype: classification.subtype
-        }
 
-        //Get data
-        const products = getProducts(classify.decision, categoryId, connection)
-        console.log(products)
+        // Classification filtering
+        const classification = await recomment_classification(preData, message)
+
+        // Get data
+        const products = await getProducts(classification, categoryId)
+
         return products
     }
 
     return
 }
 
+async function getProducts(classify, categoryId) {
+    let query = `SELECT * FROM storages WHERE categoryList LIKE '%${categoryId}%' ORDER BY `
+    const decision = classify.decision
+    const subtype = classify.subtype
+    if (decision.includes('price')) {
+        query = getPriceQuery(query, subtype);
+    }
+    if (decision.includes('discount')) {
+        query = getDiscountQuery(query, subtype);
+    }
+    if (decision.includes('hot')) {
+        query = getHotProductQuery(query, subtype);
+    }
+    if (decision.includes('brand')) {
+        query = getBrandProductQuery(query, subtype);
+    }
 
-async function getProducts(decisions, categoryId, connection) {
-    let sql = '';
-
-    if (decisions.price) {
-        sql = getPriceQuery(sql, decisions.subtype, categoryId);
+    if (query.trim().endsWith("ORDER BY")) {
+        query = query.trim().slice(0, -8); // Xóa "ORDER BY" (8 ký tự)
     }
-    if (decisions.saleOff) {
-        sql = getDiscountQuery(sql, decisions.subtype.categoryId);
-    }
-    if (decisions.hot) {
-        sql = getHotProductQuery(sql, decisions.subtype.categoryId);
-    }
-    if (decisions.brand) {
-        sql = getBrandProductQuery(sql, decisions.subtype.categoryId);
-    }
-
-    return await executeQuery(connection, sql);
+    return await executeQuery(query, 5);
 }
 
-async function executeQuery(query, params = []) {
+async function executeQuery(query, limit = 5, params = []) {
     try {
-        const [results] = await sequelize.query(query, { replacements: params, type: sequelize.QueryTypes.SELECT });
+        query += ` LIMIT ${limit}`
+
+        const [results] = await sequelize.query(query, {
+            replacements: params,
+            type: sequelize.QueryTypes.SELECT
+        });
         return results;
     } catch (error) {
         console.error("Database query error:", error);

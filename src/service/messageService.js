@@ -131,9 +131,8 @@ export const createMessage = async (data) => {
 
 export const askAI = async (req, res) => {
   try {
-    const { message } = req.query;
-    console.log(message)
-    const data = askChatbot(message)
+    const { message } = req.body;
+    const data = await askChatbot([], message)
 
     const response = responseWithJWT(req, data);
     res.status(200).json(response);

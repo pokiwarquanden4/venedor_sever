@@ -1,83 +1,63 @@
-export function getPriceQuery(sqlA, subtype, categoryId) {
+export function getPriceQuery(query, subtype) {
     for (const queryType of subtype) {
         if (queryType === "lowest_price") {
-            sqlA = `
-                SELECT *, price * (1 - saleOff / 100) AS final_price 
-                FROM storages 
-                WHERE categoryList LIKE '%${categoryId}%' 
-                ORDER BY final_price ASC
-            `;
+            query = query.replace(/ORDER BY .*/, `ORDER BY price*(1 - saleOff / 100) ASC`);
         } else if (queryType === "highest_price") {
-            sqlA = `
-                SELECT *, price * (1 - saleOff / 100) AS final_price 
-                FROM storages 
-                WHERE categoryList LIKE '%${categoryId}%' 
-                ORDER BY final_price DESC
-            `;
+            query = query.replace(/ORDER BY .*/, `ORDER BY price*(1 - saleOff / 100) DESC`);
         } else if (queryType.startsWith("price(") && queryType.endsWith(" VND)")) {
             const match = queryType.match(/price\((\d+) VND to (\d+) VND\)/);
             if (!match) return null;
 
             const [_, minPrice, maxPrice] = match.map(Number);
-            sqlA = `
-                SELECT *, price * (1 - saleOff / 100) AS final_price 
-                FROM storages 
-                WHERE final_price BETWEEN ${minPrice} AND ${maxPrice} 
-                AND categoryList LIKE '%${categoryId}%'
-                ORDER BY final_price ASC
-            `;
+            query = query.replace(/WHERE/, `WHERE price * (1 - saleOff / 100) BETWEEN ${minPrice} AND ${maxPrice} AND`);
         }
     }
-    return sqlA;
+    return query;
 }
 
 
-export function getDiscountQuery(sqlA, subtype, categoryId) {
-    sqlA = "SELECT * FROM storages WHERE categoryList LIKE '%" + categoryId + "%'";
-
+export function getDiscountQuery(query, subtype) {
     for (const queryType of subtype) {
         if (queryType === "lowest_discount") {
-            sqlA += " ORDER BY saleOff ASC";
-        } else if (queryType === "highest_discount") {
-            sqlA += " ORDER BY saleOff DESC";
-        } else if (queryType.startsWith("discount(") && queryType.endsWith(")")) {
+            query = query.replace(/ORDER BY .*/, `ORDER BY saleOff ASC`);
+        }
+        else if (queryType === "highest_discount") {
+            query = query.replace(/ORDER BY .*/, `ORDER BY saleOff DESC`);
+        }
+        else if (queryType.startsWith("discount(") && queryType.endsWith(")")) {
             const match = queryType.match(/discount\((\d+)% to (\d+)%\)/);
             if (!match) return null;
 
             const [_, minDiscount, maxDiscount] = match.map(Number);
-            sqlA += ` AND saleOff BETWEEN ${minDiscount} AND ${maxDiscount} ORDER BY saleOff DESC`;
+            query = query.replace(/WHERE/, `WHERE saleOff BETWEEN ${minDiscount} AND ${maxDiscount} AND`);
         }
     }
-    return sqlA;
+    return query;
 }
 
-export function getHotProductQuery(sqlA, subtype, categoryId) {
-    sqlA = `SELECT * FROM storages WHERE categoryList LIKE '%${categoryId}%'`;
-
+export function getHotProductQuery(query, subtype) {
     for (const queryType of subtype) {
         if (queryType === "most_sold") {
-            sqlA += " ORDER BY sold DESC";
+            query = query.replace(/ORDER BY .*/, `ORDER BY sold DESC`);
         } else if (queryType === "least_sold") {
-            sqlA += " ORDER BY sold ASC";
+            query = query.replace(/ORDER BY .*/, `ORDER BY sold ASC`);
         } else if (queryType === "best_rated") {
-            sqlA += " ORDER BY rate DESC";
+            query = query.replace(/ORDER BY .*/, `ORDER BY rate DESC`);
         } else if (queryType === "worst_rated") {
-            sqlA += " ORDER BY rate ASC";
+            query = query.replace(/ORDER BY .*/, `ORDER BY rate ASC`);
         }
     }
-    return sqlA;
+    return query;
 }
 
-export function getBrandProductQuery(sqlA, subtype, categoryId) {
+export function getBrandProductQuery(query, subtype) {
     for (const queryType of subtype) {
-        if (queryType.startsWith("brand_name:")) {
-            const brand = queryType.split(":")[1].trim();
-            if (!sqlA.includes("WHERE")) {
-                sqlA = `SELECT * FROM storages WHERE brandName = '${brand}' AND categoryList LIKE '%${categoryId}%'`;
-            } else {
-                sqlA += ` AND brandName = '${brand}' AND categoryList LIKE '%${categoryId}%'`;
-            }
+        if (queryType.startsWith("brand_name")) {
+            const brand = queryType.match(/brand_name\('(.+)'\)/)?.[1];
+
+            query = query.replace(/WHERE/, `WHERE LOWER(brandName) = LOWER('${brand}') AND`);
         }
     }
-    return sqlA;
+
+    return query;
 }

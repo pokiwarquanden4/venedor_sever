@@ -1,4 +1,14 @@
+import { zodResponseFormat } from "openai/helpers/zod.mjs";
 import { callAI } from "./utils";
+import { z } from "zod";
+
+const categoryIds = [
+    "8322", "1883", "1789", "2549", "1815", "1882", "1520", "8594",
+    "931", "4384", "1975", "915", "17166", "1846", "1686", "4221",
+    "1703", "1801", "27498", "44792", "8371", "6000", "11312", "976",
+    "27616", "15078"
+];
+
 
 const systemPrompt = `
     \"\"\" 
@@ -34,13 +44,17 @@ const systemPrompt = `
 
     Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
     {
-      "chain of thought": "Giải thích quá trình phân tích yêu cầu của người dùng và chọn danh mục phù hợp.",
       "decision": "<mã danh mục>",
       "message": ""
     }
     \"\"\"`;
 
-const recommentAgent = (preData, message) => {
+const RecommentFormat = z.object({
+    decision: z.enum(categoryIds),
+    message: z.string(),
+});
+
+const recommentAgent = async (preData, message) => {
     const data = [
         ...preData,
         {
@@ -53,7 +67,10 @@ const recommentAgent = (preData, message) => {
         }
     ]
 
-    return callAI(data)
+    const responseFormat = zodResponseFormat(RecommentFormat, "schemaName")
+
+    const results = await callAI(data, responseFormat)
+    return results
 }
 
 export default recommentAgent
