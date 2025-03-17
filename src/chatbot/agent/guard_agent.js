@@ -36,7 +36,7 @@ const guard_agent = async (preData, message) => {
     const data = [
         ...preData,
         {
-            role: "system",
+            role: "assistant",
             content: systemPrompt,
         },
         {

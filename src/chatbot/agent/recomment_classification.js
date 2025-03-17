@@ -13,14 +13,14 @@ const systemPrompt = `
         {
           "decision": "price" hoặc "hot" hoặc "discount" hoặc "brand", Chọn một hoặc nhiều danh mục từ danh sách trên rồi ghi vào mảng.
           "subtype": "lowest_price" hoặc "highest_price" hoặc "range(price-to-price)" hoặc "best_rated" hoặc "worst_rated" hoặc "most_sold" hoặc "least_sold" hoặc "highest_discount" hoặc "lowest_discount" hoặc "discount(discount% to discount%)" hoặc "brand_name(value)", Chọn một hoặc nhiều danh mục từ danh sách trên rồi ghi vào mảng.
-          "message": "Gợi ý phù hợp dựa trên yêu cầu của người dùng."
+          "message": "Đây là kết luận câu trả lời cho câu hỏi của người dùng hãy vào vai trợ lý AI vì tôi sẽ đưa tin nhắn này cho khách hàng"
         }
 
         Nếu không có kết quả phù hợp cho đầu ra thì sẽ luôn luôn là
         {
           "decision": ['hot']
           "subtype": ['most_sold']
-          "message": "Gợi ý phù hợp dựa trên yêu cầu của người dùng."
+          "message": "Đây là danh sách sản phẩm phổ biến nhất mà chúng tôi tìm thấy cho bạn!"
         }
 
         Ví dụ:
@@ -28,7 +28,7 @@ const systemPrompt = `
         {
           "decision": ['price', 'brand'],
           "subtype": ['range(0-to-15.000.000)', 'brand_name('Dell')'],
-          "message": "Đây là các mẫu laptop có giá dưới 15 triệu."
+          "message": "Đây là danh sách các mẫu laptop Dell có giá dưới 15 triệu mà chúng tôi tìm thấy cho bạn!"
         }
 
         Ví dụ:
@@ -36,7 +36,7 @@ const systemPrompt = `
         {
           "decision": ['price', 'brand'],
           "subtype": ['lowest_price', 'brand_name('Dell')'],
-          "message": "Đây là các mẫu laptop có giá dưới 15 triệu."
+          "message": "Đây là danh sách các mẫu laptop Dell rẻ nhất mà chúng tôi tìm thấy cho bạn!"
         }
 
         Ví dụ:
@@ -44,7 +44,7 @@ const systemPrompt = `
         {
           "decision": ["price"],
           "subtype": ["range(15000000 VND to infinity VND)"],
-          "message": "Đây là các mẫu laptop có giá trên 15 triệu."
+          "message": "Đây là danh sách các mẫu laptop có giá trên 15 triệu mà chúng tôi tìm thấy cho bạn!"
         }
 
         Ví dụ:
@@ -52,7 +52,7 @@ const systemPrompt = `
         {
           "decision": ["discount"],
           "subtype": ["discount(30% to 100%)"],
-          "message": "Đây là các mẫu laptop được giảm giá trên 30%."
+          "message": "Đây là danh sách các mẫu laptop đang được giảm giá từ 30% trở lên mà chúng tôi tìm thấy cho bạn!"
         }
 \"\"\"`;
 
@@ -66,7 +66,7 @@ const recomment_classification = async (preData, message) => {
   const data = [
     ...preData,
     {
-      role: "system",
+      role: "assistant",
       content: systemPrompt,
     },
     {

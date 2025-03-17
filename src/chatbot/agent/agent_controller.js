@@ -23,20 +23,24 @@ const agentController = async (preData, message) => {
         // Filter by big category
         const recomment = await recommentAgent(preData, message)
         const recommentId = recomment.decision
-
+        console.log('recommentId: ' + recommentId)
 
         // Filter by category
         const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
         const categoryId = recommentByCategory.decision
-
+        console.log('categoryId: ' + categoryId)
 
         // Classification filtering
         const classification = await recomment_classification(preData, message)
-
+        console.log(classification.decision)
+        console.log(classification.subtype)
         // Get data
         const products = await getProducts(classification, categoryId)
-
-        return products
+        console.log(products)
+        return {
+            products,
+            message: classification.message
+        }
     }
 
     return
@@ -62,6 +66,7 @@ async function getProducts(classify, categoryId) {
     if (query.trim().endsWith("ORDER BY")) {
         query = query.trim().slice(0, -8); // Xóa "ORDER BY" (8 ký tự)
     }
+    console.log(query)
     return await executeQuery(query, 5);
 }
 
@@ -69,7 +74,7 @@ async function executeQuery(query, limit = 5, params = []) {
     try {
         query += ` LIMIT ${limit}`
 
-        const [results] = await sequelize.query(query, {
+        const results = await sequelize.query(query, {
             replacements: params,
             type: sequelize.QueryTypes.SELECT
         });

@@ -131,10 +131,25 @@ export const createMessage = async (data) => {
 
 export const askAI = async (req, res) => {
   try {
-    const { message } = req.body;
+    const { message, cacheMessage } = req.body;
     const data = await askChatbot([], message)
+    const results = data.products.map((product) => {
+      return {
+        id: product.id,
+        productName: product.productName,
+        price: product.price,
+        rate: product.rate,
+        brandName: product.brandName,
+        saleOff: product.saleOff,
+        imgURL: product.imgURL
+      }
+    })
 
-    const response = responseWithJWT(req, data);
+
+    const response = responseWithJWT(req, {
+      message: data.message,
+      products: results
+    });
     res.status(200).json(response);
   } catch (err) {
     console.log(err);

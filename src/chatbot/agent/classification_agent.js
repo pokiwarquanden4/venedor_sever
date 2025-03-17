@@ -25,7 +25,7 @@ const classificationAgent = async (preData, message) => {
     const data = [
         ...preData,
         {
-            role: "system",
+            role: "assistant",
             content: systemPrompt,
         },
         {

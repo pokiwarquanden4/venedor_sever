@@ -48,7 +48,7 @@ const recommentCategoryAgent = async (preData, message, recommentId) => {
     const data = [
         ...preData,
         {
-            role: "system",
+            role: "assistant",
             content: systemPrompt,
         },
         {
