@@ -11,7 +11,7 @@ function generateSystemPrompt(categoryList) {
     
     Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
     {
-      "decision": "<mã danh mục>",
+      "decision": "<mã danh mục>", Chọn một hoặc nhiều mã danh mục từ danh sách rồi ghi vào mảng.
       "message": ""
     }
 
@@ -21,29 +21,34 @@ function generateSystemPrompt(categoryList) {
 }
 
 const RecommentCategoryFormat = z.object({
-    decision: z.number(),
+    decision: z.array(z.number()),
     message: z.string(),
 });
 
-const recommentCategoryAgent = async (preData, message, recommentId) => {
+const recommentCategoryAgent = async (preData, message, recommentIds) => {
     // Read the JSON file
     let systemPrompt = ''
     const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
     const listMenu = JSON.parse(rawData);
+    let categories = {}
 
     for (const menu of listMenu) {
         const linkParts = menu.link.split("/");
         const urlKey = linkParts[linkParts.length - 2];
         const categoryId = parseInt(menu.link.split("/").pop().replace("c", ""), 10);
 
-        if (categoryId == recommentId) {
+        if (recommentIds.some(item => item == categoryId)) {
             const rawData = fs.readFileSync(`src/data/products/${urlKey}/categoryList.json`, 'utf-8');
             const categoryList = JSON.parse(rawData);
+            categories = {
+                ...categories,
+                ...categoryList,
 
-            systemPrompt = generateSystemPrompt(categoryList)
-            break
+            }
         }
     }
+
+    systemPrompt = generateSystemPrompt(categories)
 
     const data = [
         ...preData,

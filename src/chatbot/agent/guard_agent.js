@@ -8,12 +8,13 @@ const systemPrompt = `
 
     Người dùng được phép:
         1. Nhập mô tả về sản phẩm họ đang tìm kiếm, bao gồm đặc điểm, công dụng, giá cả mong muốn, thương hiệu (nếu có).
-        2. Hỏi về các sản phẩm phù hợp với một nhu cầu cụ thể, ví dụ: 'Tôi cần một chiếc điện thoại pin trâu giá dưới 10 triệu'.
+        2. Hỏi về các sản phẩm phù hợp với một nhu cầu cụ thể, ví dụ: 'Tôi muốn mua chiếc điện thoại pin trâu giá dưới 10 triệu'.
         3. Nói lên vấn đề của bản thân và ta sẽ dựa vào đó để đưa ra sản phẩm phù hợp.
         4. Hỏi về các sản phẩm phổ biến, bán chạy hoặc được đánh giá cao.
         5. Hỏi về chương trình khuyến mãi hoặc sản phẩm có giá tốt nhất trong danh mục mong muốn.
         6. Hỏi về thông tin chính sách của trang web.
         7. Đặt hàng.
+        8. Tìm kiếm sản phẩm dựa theo tên hoặc đặc điểm của sản phẩm
 
     Người dùng không được phép:
         1. Hỏi về thông tin ngoài phạm vi thương mại điện tử và gợi ý sản phẩm.
@@ -48,7 +49,7 @@ const guard_agent = async (preData, message) => {
     const responseFormat = zodResponseFormat(GuardFormat, "schemaName")
 
     const results = await callAI(data, responseFormat)
-
+    console.log(results)
     return results
 }
 

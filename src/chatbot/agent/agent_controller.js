@@ -1,5 +1,5 @@
 import { sequelize } from "../../config/connectDB"
-import { getBrandProductQuery, getDiscountQuery, getHotProductQuery, getPriceQuery } from "../getData"
+import { getBrandProductQuery, getDiscountQuery, getHotProductQuery, getPriceQuery, getProductNameQuery } from "../getData"
 import classificationAgent from "./classification_agent"
 import guard_agent from "./guard_agent"
 import recommentAgent from "./recomment_agent"
@@ -22,21 +22,20 @@ const agentController = async (preData, message) => {
     } else if (classify.decision === 'recommendation_agent') {
         // Filter by big category
         const recomment = await recommentAgent(preData, message)
-        const recommentId = recomment.decision
-        console.log('recommentId: ' + recommentId)
+        const recommentIds = recomment.decision
+        console.log('recommentId: ' + recommentIds)
 
         // Filter by category
-        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
-        const categoryId = recommentByCategory.decision
-        console.log('categoryId: ' + categoryId)
+        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentIds)
+        const categoryIds = recommentByCategory.decision
+        console.log('categoryId: ' + categoryIds)
 
         // Classification filtering
         const classification = await recomment_classification(preData, message)
         console.log(classification.decision)
         console.log(classification.subtype)
         // Get data
-        const products = await getProducts(classification, categoryId)
-        console.log(products)
+        const products = await getProducts(classification, categoryIds)
         return {
             products,
             message: classification.message
@@ -46,8 +45,20 @@ const agentController = async (preData, message) => {
     return
 }
 
-async function getProducts(classify, categoryId) {
-    let query = `SELECT * FROM storages WHERE categoryList LIKE '%${categoryId}%' ORDER BY `
+async function getProducts(classify, categoryIds) {
+    // Tạo điều kiện LIKE cho từng ID trong mảng
+    const conditions = categoryIds.map(id => `categoryList LIKE '%${id}%'`).join(" OR ");
+
+    // Đếm số lượng ID trùng cho mỗi sản phẩm
+    const matchCount = categoryIds.map(id => `CASE WHEN categoryList LIKE '%${id}%' THEN 1 ELSE 0 END`).join(" + ");
+
+    let query = `
+       SELECT *, (${matchCount}) AS matchCount
+       FROM storages 
+       WHERE (${conditions}) 
+       ORDER BY 
+   `;
+
     const decision = classify.decision
     const subtype = classify.subtype
     if (decision.includes('price')) {
@@ -59,20 +70,25 @@ async function getProducts(classify, categoryId) {
     if (decision.includes('hot')) {
         query = getHotProductQuery(query, subtype);
     }
+    if (decision.includes('productName')) {
+        query = getProductNameQuery(query, subtype);
+    }
     if (decision.includes('brand')) {
         query = getBrandProductQuery(query, subtype);
     }
 
-    if (query.trim().endsWith("ORDER BY")) {
-        query = query.trim().slice(0, -8); // Xóa "ORDER BY" (8 ký tự)
-    }
-    console.log(query)
     return await executeQuery(query, 5);
 }
 
 async function executeQuery(query, limit = 5, params = []) {
     try {
+        query = query.replace(/ORDER BY/, `ORDER BY matchCount DESC,`);
+        if (query.trim().endsWith(",")) {
+            query = query.trim().slice(0, -1); // Xóa "ORDER BY" (8 ký tự)
+        }
+
         query += ` LIMIT ${limit}`
+        console.log(query)
 
         const results = await sequelize.query(query, {
             replacements: params,

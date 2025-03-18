@@ -20,7 +20,7 @@ const systemPrompt = `
     3. 1789 - Điện Thoại - Máy Tính Bảng
     4. 2549 - Đồ Chơi - Mẹ & Bé
     5. 1815 - Thiết Bị Số - Phụ Kiện Số
-    6. 1882 - Điện Gia Dụng
+    6. 1882 - Điện Gia Dụng (Thiết bị gia dụng nhỏ: nồi cơm điện, lò vi sóng, bếp từ, máy hút bụi, quạt điện, máy xay sinh tố, máy ép trái cây, bàn ủi, nồi chiên không dầu, v.v.)
     7. 1520 - Làm Đẹp - Sức Khỏe
     8. 8594 - Ô Tô - Xe Máy - Xe Đạp
     9. 931 - Thời Trang Nữ
@@ -30,7 +30,7 @@ const systemPrompt = `
     13. 17166 - Cross Border - Hàng Quốc Tế
     14. 1846 - Laptop - Máy Vi Tính - Linh Kiện
     15. 1686 - Giày - Dép Nam
-    16. 4221 - Điện Tử - Điện Lạnh
+    16. 4221 - Điện Tử - Điện Lạnh (Thiết bị điện tử & điện lạnh lớn: TV, loa, tủ lạnh, máy giặt, máy lạnh, lò nướng, bếp điện, v.v.)
     17. 1703 - Giày - Dép Nữ
     18. 1801 - Máy Ảnh - Máy Quay Phim
     19. 27498 - Phụ Kiện Thời Trang
@@ -44,13 +44,13 @@ const systemPrompt = `
 
     Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
     {
-      "decision": "<mã danh mục>",
+      "decision": "<mã danh mục>", Chọn một hoặc nhiều mã danh mục từ danh sách rồi ghi vào mảng.
       "message": ""
     }
     \"\"\"`;
 
 const RecommentFormat = z.object({
-    decision: z.enum(categoryIds),
+    decision: z.array(z.number()),
     message: z.string(),
 });
 
