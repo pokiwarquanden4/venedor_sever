@@ -134,7 +134,6 @@ async function insertProducts() {
     }
 }
 
-
 async function addComments() {
     try {
         const results = [];
@@ -222,12 +221,63 @@ async function addComments() {
     }
 }
 
+
+async function insertDescriptionsDetail() {
+    try {
+        const results = [];
+        const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
+        const listMenu = JSON.parse(rawData);
+
+        for (const menu of listMenu) {
+            const linkParts = menu.link.split("/");
+            const urlKey = linkParts[linkParts.length - 2];
+            const categoryId = parseInt(menu.link.split("/").pop().replace("c", ""), 10);
+            const rawDataProduct = fs.readFileSync(`src/data/products/${urlKey}/products.json`, 'utf-8');
+            const rawDataProductDetails = fs.readFileSync(`src/data/products/${urlKey}/productDetails.json`, 'utf-8');
+            const productDetails = JSON.parse(rawDataProductDetails);
+            const products = JSON.parse(rawDataProduct);
+
+            for (let index = 0; index < products.length; index++) {
+                const product = products[index];
+                const productDetail = productDetails[index];
+
+                if (product.quantity_sold === null || !productDetail.configurable_options) continue;
+                productDetail.configurable_options.forEach((item) => {
+                    results.push({
+                        specificName: item.name,
+                        storageId: product.id,
+                        specific: item.values.map((value) => value.label).join('_'),
+                    });
+                })
+            }
+        }
+
+        // Insert in chunks to avoid memory overload
+        const chunkArray = (array, chunkSize) =>
+            Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+                array.slice(i * chunkSize, i * chunkSize + chunkSize)
+            );
+
+        const chunkSize = 100;
+        const dataChunks = chunkArray(results, chunkSize);
+
+        for (const chunk of dataChunks) {
+            await db.StorageSpecific.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
+        }
+
+        console.log("✅ Products inserted successfully!");
+    } catch (error) {
+        console.error("❌ Error inserting products:", error);
+    }
+}
+
 // Run the function
 async function run() {
     try {
         // await insertCategories();
         // await insertProducts();
-        await addComments();
+        // await addComments();
+        await insertDescriptionsDetail();
     } catch (error) {
         console.error("❌ Error running script:", error);
     }
