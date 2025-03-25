@@ -70,11 +70,11 @@ async function getProducts(classify, categoryIds) {
     if (decision.includes('hot')) {
         query = getHotProductQuery(query, subtype);
     }
-    if (decision.includes('productName')) {
-        query = getProductNameQuery(query, subtype);
-    }
     if (decision.includes('brand')) {
         query = getBrandProductQuery(query, subtype);
+    }
+    if (decision.includes('productName')) {
+        query = await getProductNameQuery(query, subtype);
     }
 
     return await executeQuery(query, 5);

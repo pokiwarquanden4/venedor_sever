@@ -1,9 +1,25 @@
-import { ChromaClient } from "chromadb";
-const client = new ChromaClient(path = "/vectorDB");
+import { ChromaClient, DefaultEmbeddingFunction } from "chromadb";
+const client = new ChromaClient();
+const defaultEF = new DefaultEmbeddingFunction();
 
-const collection = await client.createCollection({
-    name: "venedor_seaching",
-});
+const getCollection = async () => {
+    let collection = await client.getCollection({
+        name: "venedor",
+        embeddingFunction: defaultEF,
+    });
+    if (!collection) {
+        collection = await client.createCollection({
+            embeddingFunction: defaultEF,
+            name: "venedor",
+        });
+    }
 
-export default collection
+    return collection
+}
+
+export const clearVectorDB = async () => {
+    await client.reset();
+}
+
+export default getCollection
 

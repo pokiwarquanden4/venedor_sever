@@ -1,8 +1,10 @@
 "use strict";
-const db = require("./models");
-const fs = require("fs");
-const path = require("path");
-const _ = require('lodash');
+import db from "./models/index.js";  // Ensure the file has a `.js` extension if not using TypeScript
+import fs from "fs";
+import path from "path";
+import _ from "lodash";
+import { addDVectorDB, deleteVectorDB, queryVectorDB } from "./chatbot/vectorDB/vectorDBController.js";
+import getCollection, { clearVectorDB } from "./chatbot/vectorDB/collection.js";
 
 async function insertCategories() {
     try {
@@ -271,13 +273,79 @@ async function insertDescriptionsDetail() {
     }
 }
 
+async function addProductToVectorDB() {
+    try {
+        const documents = {};
+        const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
+        const listMenu = JSON.parse(rawData);
+
+        for (const menu of listMenu) {
+            const linkParts = menu.link.split("/");
+            const urlKey = linkParts[linkParts.length - 2];
+            const categoryId = parseInt(menu.link.split("/").pop().replace("c", ""), 10);
+            const rawDataProduct = fs.readFileSync(`src/data/products/${urlKey}/products.json`, 'utf-8');
+            const rawDataProductDetails = fs.readFileSync(`src/data/products/${urlKey}/productDetails.json`, 'utf-8');
+            const productDetails = JSON.parse(rawDataProductDetails);
+            const products = JSON.parse(rawDataProduct);
+
+            for (let index = 0; index < products.length; index++) {
+                const product = products[index];
+                const productDetail = productDetails[index];
+
+                if (product.quantity_sold === null) continue;
+
+                documents[product.id] = `${product.name}  `
+                if (productDetail.configurable_options) {
+                    documents[product.id] += `Options: `
+                    productDetail.configurable_options.forEach((item) => {
+                        documents[product.id] += `${item.name}(${item.values.map((value) => value.label).join(', ')}) `
+                    })
+                }
+
+            }
+        }
+        const collection = await getCollection()
+        await addDVectorDB(collection, documents, 100)
+
+        console.log("✅ Products inserted successfully!");
+    } catch (error) {
+        console.error("❌ Error inserting products:", error);
+    }
+}
+
+
+async function findProductInVectorDB() {
+    try {
+        const collection = await getCollection()
+        await queryVectorDB(collection)
+
+        console.log("✅ Products query successfully!");
+    } catch (error) {
+        console.error("❌ Error inserting products:", error);
+    }
+}
+
+async function deleteProductInVectorDB() {
+    try {
+        const collection = await getCollection()
+        await deleteVectorDB(collection)
+
+        console.log("✅ Products delete successfully!");
+    } catch (error) {
+        console.error("❌ Error inserting products:", error);
+    }
+}
+
 // Run the function
 async function run() {
     try {
         // await insertCategories();
         // await insertProducts();
         // await addComments();
-        await insertDescriptionsDetail();
+        // await insertDescriptionsDetail();
+        // await addProductToVectorDB();
+        await findProductInVectorDB();
+        // await clearVectorDB()
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

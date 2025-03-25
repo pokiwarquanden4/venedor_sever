@@ -132,7 +132,6 @@ export const createMessage = async (data) => {
 export const askAI = async (req, res) => {
   try {
     const { message, cacheMessage } = req.body;
-    console.log(cacheMessage)
     const data = await askChatbot(cacheMessage, message)
     const results = data.products.map((product) => {
       return {

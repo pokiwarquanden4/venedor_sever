@@ -1,3 +1,6 @@
+import getCollection from "./vectorDB/collection";
+import { queryVectorDB } from "./vectorDB/vectorDBController";
+
 export function getPriceQuery(query, subtype) {
     for (const queryType of subtype) {
         if (queryType === "lowest_price") {
@@ -42,11 +45,14 @@ export function getDiscountQuery(query, subtype) {
     return query;
 }
 
-export function getProductNameQuery(query, subtype) {
+export async function getProductNameQuery(query, subtype) {
     for (const queryType of subtype) {
         if (queryType.startsWith("productName")) {
             const productName = queryType.match(/productName\('(.+)'\)/)?.[1];
-            query = query.replace(/WHERE/, `WHERE (LOWER(productName) LIKE LOWER('%${productName.toLowerCase()}%') OR LOWER(description) LIKE LOWER('%${productName.toLowerCase()}%')) AND`);
+            const collection = await getCollection()
+            const vectorData = await queryVectorDB(collection, productName)
+            const idList = vectorData.ids[0]
+            query = query.replace(/WHERE .*/i, `WHERE id IN (${idList.join(",")})`);
         }
     }
 
