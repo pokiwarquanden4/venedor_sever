@@ -204,6 +204,11 @@ export const searchProductById = async (req, res) => {
   try {
     const data = req.query;
     const products = await db.Storage.findOne({
+      include: [
+        {
+          model: db.StorageSpecific,
+        },
+      ],
       where: {
         id: data.id,
       },
