@@ -8,14 +8,14 @@ const systemPrompt = `
           - **hot**: Gợi ý sản phẩm phổ biến dựa trên lượt bán (most_sold, least_sold) hoặc đánh giá (best_rated, worst_rated).
           - **discount**: Gợi ý sản phẩm có giảm giá cao (highest_discount), thấp (lowest_discount) hoặc trong khoảng (discount(discount% to discount%)).
           - **brand**: Gợi ý sản phẩm từ một thương hiệu cụ thể (brand_name(value)).
-          - **productName**: Gợi ý theo tên và đặc điểm của sản phẩm (productName(value)).
+          - **productName**: Gợi ý theo tên riêng của sản phẩm (productName(value)). Chỉ nhận **tên riêng**, không nhận danh từ chung như "laptop", "điện thoại".
 
          **Quy tắc xử lý yêu cầu:**
           1. Nếu người dùng chỉ nhắc đến giá, tập trung vào danh mục "price".
           2. Nếu người dùng yêu cầu sản phẩm phổ biến, ưu tiên "hot".
           3. Nếu người dùng nhắc đến thương hiệu, thêm "brand".
           4. Nếu người dùng nhắc đến giảm giá, ưu tiên "discount".
-          5. Nếu yêu cầu chứa tên hoặc đặc điểm nhận dạng của sản phẩm 'productName'.
+          5. Nếu yêu cầu chứa **tên riêng** của sản phẩm, chọn **productName** (loại bỏ danh từ chung).  
           6. Nếu yêu cầu chứa nhiều tiêu chí, kết hợp tất cả các tiêu chí phù hợp.
           7. Nếu không tìm thấy kết quả phù hợp, luôn trả về danh sách sản phẩm bán chạy nhất.
 
@@ -42,17 +42,10 @@ const systemPrompt = `
       "message": "Đây là danh sách các mẫu laptop Dell có giá dưới 15 triệu mà chúng tôi tìm thấy cho bạn!"
     }
 
-    2. Người dùng: "Tìm laptop Lenovo Legion 5 màu xanh"
+    2. Người dùng: "Tìm laptop Lenovo Legion 5"
     {
       "decision": ["productName", "brand"],
-      "subtype": ["productName('Lenovo Legion 5 màu xanh')", "brand_name('Lenovo')"],
-      "message": "Đây là danh sách các mẫu laptop Lenovo Legion 5 mà chúng tôi tìm thấy cho bạn!"
-    }
-
-    . Người dùng: "Tôi muốn mua một chiếc váy màu hồng"
-    {
-      "decision": ["productName", "hot"],
-      "subtype": ["productName('váy màu hồng')", "most_sold"],
+      "subtype": ["productName('Lenovo Legion 5')", "brand_name('Lenovo')"],
       "message": "Đây là danh sách các mẫu laptop Lenovo Legion 5 mà chúng tôi tìm thấy cho bạn!"
     }
 
