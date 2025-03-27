@@ -8,8 +8,8 @@ export const addDVectorDB = async (collection, data, chunkSize) => {
         return chunks;
     }
 
-    const docChunks = chunkArray(Object.values(data), chunkSize);
-    const idChunks = chunkArray(Object.keys(data), chunkSize);
+    const docChunks = chunkArray(data.documents, chunkSize);
+    const idChunks = chunkArray(data.ids, chunkSize);
 
     for (let i = 0; i < docChunks.length; i++) {
         await collection.add({
@@ -19,11 +19,31 @@ export const addDVectorDB = async (collection, data, chunkSize) => {
     }
 }
 
-export const queryVectorDB = async (collection, text) => {
-    const results = await collection.query({
-        queryTexts: text, // Chroma will embed this for you
-        nResults: 5, // how many results to return
-    });
+function extractCategoryIds(input) {
+    const match = input.match(/categoryList:\s*([c\d\/]+)/);
+    return match ? match[1].match(/\d+/g).map(Number) : [];
+}
+
+export const queryVectorDB = async (collection, text, limit, categoryIds = []) => {
+    const transformedIds = categoryIds.map(id => `c${id}`);
+
+    let results
+    if (transformedIds.length) {
+        results = await collection.query({
+            queryTexts: text, // Chroma will embed this for you
+            whereDocument: transformedIds.length === 1 ?
+                { "$contains": transformedIds[0] } :
+                { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string
+            nResults: limit,
+        });
+    } else {
+        results = await collection.query({
+            queryTexts: text, // Chroma will embed this for you
+            nResults: limit,
+        });
+    }
+
+
 
     return results;
 };

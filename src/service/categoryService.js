@@ -11,6 +11,8 @@ import { firebaseConfig } from "../config/fireBase";
 import { responseWithJWT } from "./jwt/jwtService";
 import { Op } from "sequelize";
 import sequelize from "sequelize";
+import { queryVectorDB } from "../chatbot/vectorDB/vectorDBController";
+import getCollection from "../chatbot/vectorDB/collection";
 
 initializeApp(firebaseConfig);
 const storage = getStorage();
@@ -185,12 +187,15 @@ export const editProduct = async (req, res) => {
 export const searchProduct = async (req, res) => {
   try {
     const data = req.query;
+    const collection = await getCollection()
+    const results = await queryVectorDB(collection, data.content, 10)
     const products = await db.Storage.findAll({
       where: {
-        description: {
-          [Op.like]: `%${data.productName}%`,
+        id: {
+          [Op.in]: results.ids[0].map(i => Number(i)), // Convert each string ID to a number
         },
       },
+      limit: 10,
     });
 
     const response = responseWithJWT(req, products);

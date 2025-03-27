@@ -275,7 +275,9 @@ async function insertDescriptionsDetail() {
 
 async function addProductToVectorDB() {
     try {
-        const documents = {};
+        const documents = [];
+        const ids = []
+
         const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
         const listMenu = JSON.parse(rawData);
 
@@ -294,18 +296,30 @@ async function addProductToVectorDB() {
 
                 if (product.quantity_sold === null) continue;
 
-                documents[product.id] = `${product.name}  `
+                let doc = `${product.name}  `
                 if (productDetail.configurable_options) {
-                    documents[product.id] += `Options: `
+                    doc += `Options: `
                     productDetail.configurable_options.forEach((item) => {
-                        documents[product.id] += `${item.name}(${item.values.map((value) => value.label).join(', ')}) `
+                        doc += `${item.name}(${item.values.map((value) => value.label).join(', ')}) `
                     })
                 }
 
+                doc += 'categoryList: '
+                doc += product.primary_category_path
+                    .split('/')   // Split the string into an array
+                    .map(num => `c${num}`)  // Prefix each number with "c"
+                    .join('/');   // Join back into a string
+
+                ids.push(JSON.stringify(product.id))
+                documents.push(doc)
             }
         }
         const collection = await getCollection()
-        await addDVectorDB(collection, documents, 100)
+
+        await addDVectorDB(collection, {
+            ids,
+            documents
+        }, 200)
 
         console.log("✅ Products inserted successfully!");
     } catch (error) {
@@ -343,8 +357,8 @@ async function run() {
         // await insertProducts();
         // await addComments();
         // await insertDescriptionsDetail();
-        // await addProductToVectorDB();
-        await findProductInVectorDB();
+        await addProductToVectorDB();
+        // await findProductInVectorDB();
         // await clearVectorDB()
     } catch (error) {
         console.error("❌ Error running script:", error);

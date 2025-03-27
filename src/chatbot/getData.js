@@ -45,12 +45,12 @@ export function getDiscountQuery(query, subtype) {
     return query;
 }
 
-export async function getProductNameQuery(query, subtype) {
+export async function getProductNameQuery(query, subtype, categoryIds) {
     for (const queryType of subtype) {
         if (queryType.startsWith("productName")) {
             const productName = queryType.match(/productName\('(.+)'\)/)?.[1];
             const collection = await getCollection()
-            const vectorData = await queryVectorDB(collection, productName)
+            const vectorData = await queryVectorDB(collection, productName, 5, categoryIds)
             const idList = vectorData.ids[0]
             query = query.replace(/WHERE .*/i, `WHERE id IN (${idList.join(",")})`);
         }

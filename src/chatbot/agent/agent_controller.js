@@ -74,7 +74,7 @@ async function getProducts(classify, categoryIds) {
         query = getBrandProductQuery(query, subtype);
     }
     if (decision.includes('productName')) {
-        query = await getProductNameQuery(query, subtype);
+        query = await getProductNameQuery(query, subtype, categoryIds);
     }
 
     return await executeQuery(query, 5);

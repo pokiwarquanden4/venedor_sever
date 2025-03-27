@@ -4,13 +4,13 @@ const defaultEF = new DefaultEmbeddingFunction();
 
 const getCollection = async () => {
     let collection = await client.getCollection({
-        name: "venedor",
+        name: "vectorDB",
         embeddingFunction: defaultEF,
     });
     if (!collection) {
         collection = await client.createCollection({
             embeddingFunction: defaultEF,
-            name: "venedor",
+            name: "vectorDB",
         });
     }
 

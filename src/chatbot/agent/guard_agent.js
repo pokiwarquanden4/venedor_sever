@@ -49,7 +49,6 @@ const guard_agent = async (preData, message) => {
     const responseFormat = zodResponseFormat(GuardFormat, "schemaName")
 
     const results = await callAI(data, responseFormat)
-    console.log(results)
     return results
 }
 
