@@ -49,8 +49,8 @@ const rankMatches = (arr, words) => {
     return arr
         .map(str => {
             const lowerStr = str.toLowerCase();
-            const matchCount = words.filter(word => new RegExp(word, 'u').test(lowerStr)).length;
-            return matchCount;
+            const uniqueMatches = new Set(words.filter(word => new RegExp(word, 'u').test(lowerStr)));
+            return uniqueMatches.size;
         })
 };
 
@@ -68,6 +68,7 @@ export async function getProductNameQuery(query, subtype, categoryIds) {
                 .map(item => item.id);
 
             query = query.replace(/WHERE/i, `WHERE id IN (${idListSorted.join(",")}) AND`);
+            query = query.replace(/ORDER BY/i, `ORDER BY FIELD(id, ${idListSorted.join(",")}),`);
         }
     }
 

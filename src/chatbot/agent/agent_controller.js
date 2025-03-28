@@ -84,8 +84,6 @@ async function getProducts(classify, categoryIds) {
         query = getBrandProductQuery(query, subtype);
     }
 
-    addOrder(classify, categoryIds)
-
     return await executeQuery(query, 5);
 }
 
