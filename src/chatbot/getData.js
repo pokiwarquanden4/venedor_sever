@@ -45,14 +45,29 @@ export function getDiscountQuery(query, subtype) {
     return query;
 }
 
+const rankMatches = (arr, words) => {
+    return arr
+        .map(str => {
+            const lowerStr = str.toLowerCase();
+            const matchCount = words.filter(word => new RegExp(word, 'u').test(lowerStr)).length;
+            return matchCount;
+        })
+};
+
 export async function getProductNameQuery(query, subtype, categoryIds) {
     for (const queryType of subtype) {
         if (queryType.startsWith("productName")) {
             const productName = queryType.match(/productName\('(.+)'\)/)?.[1];
             const collection = await getCollection()
-            const vectorData = await queryVectorDB(collection, productName, 5, categoryIds)
+            const vectorData = await queryVectorDB(collection, productName, 50, categoryIds)
+            const ranking = rankMatches(vectorData.documents[0], productName.toLowerCase().match(/\p{L}+/gu) || [])
             const idList = vectorData.ids[0]
-            query = query.replace(/WHERE .*/i, `WHERE id IN (${idList.join(",")})`);
+            const idListSorted = idList
+                .map((id, index) => ({ id, point: ranking[index] }))
+                .sort((a, b) => b.point - a.point)
+                .map(item => item.id);
+
+            query = query.replace(/WHERE/i, `WHERE id IN (${idListSorted.join(",")}) AND`);
         }
     }
 

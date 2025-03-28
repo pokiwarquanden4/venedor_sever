@@ -44,13 +44,13 @@ const systemPrompt = `
 
     Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
     {
-      "decision": "<mã danh mục>", Chọn một hoặc nhiều mã danh mục từ danh sách rồi ghi vào mảng.
+      "decision": "<mã danh mục>"
       "message": ""
     }
     \"\"\"`;
 
 const RecommentFormat = z.object({
-    decision: z.array(z.number()),
+    decision: z.number(),
     message: z.string(),
 });
 

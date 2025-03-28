@@ -25,7 +25,7 @@ const RecommentCategoryFormat = z.object({
     message: z.string(),
 });
 
-const recommentCategoryAgent = async (preData, message, recommentIds) => {
+const recommentCategoryAgent = async (preData, message, recommentId) => {
     // Read the JSON file
     let systemPrompt = ''
     const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
@@ -37,7 +37,7 @@ const recommentCategoryAgent = async (preData, message, recommentIds) => {
         const urlKey = linkParts[linkParts.length - 2];
         const categoryId = parseInt(menu.link.split("/").pop().replace("c", ""), 10);
 
-        if (recommentIds.some(item => item == categoryId)) {
+        if (recommentId === categoryId) {
             const rawData = fs.readFileSync(`src/data/products/${urlKey}/categoryList.json`, 'utf-8');
             const categoryList = JSON.parse(rawData);
             categories = {
