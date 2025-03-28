@@ -68,9 +68,6 @@ async function getProducts(classify, categoryIds) {
 
     const decision = classify.decision
     const subtype = classify.subtype
-    if (decision.includes('productName')) {
-        query = await getProductNameQuery(query, subtype, categoryIds);
-    }
     if (decision.includes('price')) {
         query = getPriceQuery(query, subtype);
     }
@@ -82,6 +79,9 @@ async function getProducts(classify, categoryIds) {
     }
     if (decision.includes('brand')) {
         query = getBrandProductQuery(query, subtype);
+    }
+    if (decision.includes('productName')) {
+        query = await getProductNameQuery(query, subtype, categoryIds);
     }
 
     return await executeQuery(query, 5);
