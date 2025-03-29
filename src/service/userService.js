@@ -466,6 +466,7 @@ export const getCartProduct = async (req, res) => {
       if (carts.length > 0) {
         carts.forEach((item) => {
           obj.push({
+            specific: item.dataValues.specific,
             cartQuantity: item.dataValues.quantity,
             ...item.dataValues.Storage.dataValues,
           });
@@ -521,6 +522,7 @@ export const createCartProduct = async (req, res) => {
           where: {
             userId: user.dataValues.id,
             productId: req.body.id,
+            specific: req.body.specific
           },
         }
       );
@@ -529,6 +531,7 @@ export const createCartProduct = async (req, res) => {
           userId: user.dataValues.id,
           productId: req.body.id,
           quantity: req.body.quantity,
+          specific: req.body.specific
         });
       }
 

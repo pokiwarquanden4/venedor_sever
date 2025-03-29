@@ -236,6 +236,11 @@ export const searchCategoryProduct = async (req, res) => {
     }
 
     const { count, rows: products } = await db.Storage.findAndCountAll({
+      include: [
+        {
+          model: db.StorageSpecific,
+        },
+      ],
       where: whereCondition,
       limit: parseInt(limit),
       offset: parseInt(offset),
