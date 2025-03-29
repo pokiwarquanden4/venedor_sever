@@ -242,6 +242,7 @@ export const searchCategoryProduct = async (req, res) => {
         },
       ],
       where: whereCondition,
+      distinct: true, // ✅ Ensures correct count
       limit: parseInt(limit),
       offset: parseInt(offset),
     });
