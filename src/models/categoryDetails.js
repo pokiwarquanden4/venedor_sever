@@ -1,7 +1,7 @@
 "use strict";
 module.exports = (sequelize, DataTypes) => {
-    const Category = sequelize.define(
-        "Category",
+    const CategoryDetail = sequelize.define(
+        "CategoryDetail",
         {
             id: {
                 allowNull: false,
@@ -11,6 +11,10 @@ module.exports = (sequelize, DataTypes) => {
             categoryName: {
                 type: DataTypes.STRING,
                 allowNull: false,
+            },
+            categoryId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
             }
         },
         {
@@ -18,14 +22,11 @@ module.exports = (sequelize, DataTypes) => {
         }
     );
 
-    Category.associate = (models) => {
-        Category.hasMany(models.Storage, {
-            foreignKey: "categoryId",
-        });
-        Category.hasMany(models.CategoryDetail, {
+    CategoryDetail.associate = (models) => {
+        CategoryDetail.belongsTo(models.Category, {
             foreignKey: "categoryId",
         });
     };
 
-    return Category;
+    return CategoryDetail;
 };

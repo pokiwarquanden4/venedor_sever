@@ -136,6 +136,7 @@ export const askAI = async (req, res) => {
     const results = data.products.map((product) => {
       return {
         id: product.id,
+        categoryId: product.categoryId,
         productName: product.productName,
         price: product.price,
         rate: product.rate,

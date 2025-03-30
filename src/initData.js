@@ -109,7 +109,7 @@ async function insertProducts() {
                     number: productDetail.stock_item?.qty || 100,
                     saleOff: Math.round(((product.original_price - product.price) / product.original_price) * 100),
                     imgURL: product.thumbnail_url,
-                    listImgURL: productDetail.images.map((img) => img.base_url).join("_"),
+                    listImgURL: productDetail.images.map((img) => img.base_url).join("___"),
                     categoryList: product.primary_category_path,
                     categoryId: categoryId,
                     disable: false
@@ -248,7 +248,7 @@ async function insertDescriptionsDetail() {
                     results.push({
                         specificName: item.name,
                         storageId: product.id,
-                        specific: item.values.map((value) => value.label).join('_'),
+                        specific: item.values.map((value) => value.label).join('___'),
                     });
                 })
             }
@@ -327,7 +327,6 @@ async function addProductToVectorDB() {
     }
 }
 
-
 async function findProductInVectorDB() {
     try {
         const collection = await getCollection()
@@ -350,6 +349,49 @@ async function deleteProductInVectorDB() {
     }
 }
 
+async function insertCategoryDetails() {
+    try {
+        const results = [];
+        const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
+        const listMenu = JSON.parse(rawData);
+
+        for (const menu of listMenu) {
+            const linkParts = menu.link.split("/");
+            const urlKey = linkParts[linkParts.length - 2];
+            const categoryId = parseInt(menu.link.split("/").pop().replace("c", ""), 10);
+            const rawCategories = fs.readFileSync(`src/data/products/${urlKey}/categoryList.json`, 'utf-8');
+            const categories = JSON.parse(rawCategories);
+
+            Object.keys(categories).forEach((id) => {
+                const val = categories[id]
+
+                results.push({
+                    id: id,
+                    categoryName: val,
+                    categoryId: categoryId
+                })
+            })
+        }
+
+        // Insert in chunks to avoid memory overload
+        const chunkArray = (array, chunkSize) =>
+            Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+                array.slice(i * chunkSize, i * chunkSize + chunkSize)
+            );
+
+        const chunkSize = 100;
+        const dataChunks = chunkArray(results, chunkSize);
+
+        for (const chunk of dataChunks) {
+            await db.CategoryDetail.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
+        }
+
+        console.log("✅ Products inserted successfully!");
+    } catch (error) {
+        console.error("❌ Error inserting products:", error);
+    }
+}
+
 // Run the function
 async function run() {
     try {
@@ -357,9 +399,10 @@ async function run() {
         // await insertProducts();
         // await addComments();
         // await insertDescriptionsDetail();
-        await addProductToVectorDB();
+        // await addProductToVectorDB();
         // await findProductInVectorDB();
         // await clearVectorDB()
+        // await insertCategoryDetails()
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

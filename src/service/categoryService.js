@@ -48,12 +48,14 @@ export const createProduct = async (req, res) => {
         if (i === 0) {
           imgURL = downloadURL;
         } else {
-          listImgURL += `_${downloadURL}`;
+          listImgURL += `___${downloadURL}`;
         }
       }
+      listImgURL = listImgURL.slice(3)
 
       const newProduct = {
         ...req.body,
+        categoryList: '/' + req.body.categoryList.split(',').join('/') + '/',
         id: nextID,
         sellerId: user.id,
         shipping: 0,
@@ -63,7 +65,19 @@ export const createProduct = async (req, res) => {
         listImgURL: listImgURL,
         disable: false,
       };
-      await db.Storage.create(newProduct);
+
+      // Create Storage and get storageId
+      const createdStorage = await db.Storage.create(newProduct);
+      const storageId = createdStorage.id; // Get the generated ID
+
+      // Create Specifics using the new storageId
+      const formattedData = JSON.parse(req.body.specifics).map((data) => ({
+        specificName: data.specificName,
+        storageId: storageId, // Use the newly created storageId
+        specific: data.specific.join("___"), // Convert array to string
+      }));
+
+      await db.StorageSpecific.bulkCreate(formattedData); // Insert all specifics at once
 
       const response = responseWithJWT(req, newProduct, user);
       res.status(200).json(response);
@@ -80,12 +94,20 @@ export const getAllProducts = async (req, res) => {
         include: [
           {
             model: db.Storage,
+            include: [
+              {
+                model: db.StorageSpecific, // Lấy StorageSpecific từ Storage
+                required: false,
+              },
+            ],
+            required: false, // Nếu Storage có thể không tồn tại
           },
         ],
         where: {
           account: req.body.jwtAccount,
         },
       });
+
       const obj = [];
       for (let i = 0; i < user.dataValues.Storages.length; i++) {
         obj.push(user.dataValues.Storages[i].dataValues);
@@ -106,11 +128,10 @@ export const editProduct = async (req, res) => {
           account: req.body.jwtAccount,
         },
       });
-      let removeListImg = req.body.remove.split("_").splice(1);
-
+      let removeListImg = req.body.remove.split("___");
       //Delete files in FireBase
       for (let i = 0; i < removeListImg.length; i++) {
-        deleteFile(removeListImg[i]);
+        removeListImg[i] && deleteFile(removeListImg[i]);
       }
 
       //Current Product
@@ -141,9 +162,10 @@ export const editProduct = async (req, res) => {
         if (i === 0 && req.body.main === "true") {
           imgURL = downloadURL;
         } else {
-          listImgURL += `_${downloadURL}`;
+          listImgURL += `___${downloadURL}`;
         }
       }
+      listImgURL = listImgURL.slice(3)
 
       const obj = {
         productName: req.body.productName,
@@ -151,15 +173,17 @@ export const editProduct = async (req, res) => {
         description: req.body.description,
         number: req.body.number,
         saleOff: req.body.saleOff,
-        category: req.body.category,
+        categoryId: req.body.categoryId,
+        categoryList: '/' + req.body.categoryList.split(',').join('/') + '/',
+        brandName: req.body.brandName
       };
       if (imgURL) {
         obj.imgURL = imgURL;
         removeListImg = removeListImg.splice(1);
       }
-      let newListImgURL = currentProduct.dataValues.listImgURL;
+      let newListImgURL = '___' + currentProduct.dataValues.listImgURL;
       for (let i = 0; i < removeListImg.length; i++) {
-        newListImgURL = newListImgURL.replace(`_${removeListImg[i]}`, "");
+        newListImgURL = newListImgURL.replace(`___${removeListImg[i]}`, "");
       }
       newListImgURL += listImgURL;
       obj.listImgURL = newListImgURL;
@@ -175,6 +199,36 @@ export const editProduct = async (req, res) => {
           },
         }
       );
+
+      //Update specific
+      const AllS = await db.StorageSpecific.findAll({
+        where: { storageId: req.body.id },
+      });
+
+      const newSpecifics = JSON.parse(req.body.specifics).map((data) => ({
+        id: data.id || null, // Có thể undefined nếu là mới
+        specificName: data.specificName,
+        storageId: req.body.id,
+        specific: data.specific.join("___"),
+      }));
+
+      const AllSIds = AllS.map((item) => item.id);
+      const newSpecificsIds = newSpecifics.map((item) => item.id).filter((id) => id !== null);
+
+      const toUpdate = newSpecifics.filter((item) => AllSIds.includes(item.id)); // Cập nhật
+      const toDelete = AllS.filter((item) => !newSpecificsIds.includes(item.id)); // Xóa
+      const toAdd = newSpecifics.filter((item) => item.id === null); // Thêm
+
+      for (const item of toUpdate) {
+        await db.StorageSpecific.update(
+          { specificName: item.specificName, specific: item.specific },
+          { where: { id: item.id } }
+        );
+      }
+      await db.StorageSpecific.destroy({
+        where: { id: toDelete.map((item) => item.id) },
+      });
+      await db.StorageSpecific.bulkCreate(toAdd);
 
       const response = responseWithJWT(req, "Success", user);
       res.status(200).json(response);
@@ -195,6 +249,11 @@ export const searchProduct = async (req, res) => {
           [Op.in]: results.ids[0].map(i => Number(i)), // Convert each string ID to a number
         },
       },
+      include: [
+        {
+          model: db.StorageSpecific,
+        },
+      ],
       limit: 10,
     });
 
@@ -383,6 +442,11 @@ export const getLatestProduct = async (req, res) => {
     const products = await db.Storage.findAll({
       order: [["createdAt", "DESC"]],
       limit: 8,
+      include: [
+        {
+          model: db.StorageSpecific,
+        },
+      ],
     });
 
     const response = responseWithJWT(req, products);
@@ -396,6 +460,11 @@ export const getBestSellerProduct = async (req, res) => {
     const products = await db.Storage.findAll({
       order: [["sold", "DESC"]],
       limit: 8,
+      include: [
+        {
+          model: db.StorageSpecific,
+        },
+      ],
     });
 
     const response = responseWithJWT(req, products);
@@ -409,6 +478,11 @@ export const getFeatureProduct = async (req, res) => {
     const products = await db.Storage.findAll({
       order: [["rate", "DESC"]],
       limit: 8,
+      include: [
+        {
+          model: db.StorageSpecific,
+        },
+      ],
     });
 
     const response = responseWithJWT(req, products);
@@ -528,7 +602,23 @@ export const getCatoryList = async (req, res) => {
       }
     }
 
-    const response = responseWithJWT(req, data);
+    const categories = await db.Category.findAll({
+      include: [
+        {
+          model: db.CategoryDetail,
+        },
+      ],
+    });
+
+    const groupedData = categories.reduce((acc, category) => {
+      acc[category.id] = category.CategoryDetails; // Nhóm theo categoryId
+      return acc;
+    }, {});
+
+    const response = responseWithJWT(req, {
+      category: data,
+      categoryDetails: groupedData
+    });
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json(err);

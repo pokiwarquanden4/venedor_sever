@@ -50,11 +50,11 @@ const systemPrompt = `
       "message": "Đây là danh sách các mẫu laptop Lenovo Legion 5 mà chúng tôi tìm thấy cho bạn!"
     }
 
-    . Người dùng: "Tôi muốn mua một chiếc váy màu hồng"
+    . Người dùng: "Tôi muốn mua một chiếc quần màu hồng cho nam"
     {
       "decision": ["productName", "hot"],
-      "subtype": ["productName('váy màu hồng')", "most_sold"],
-      "message": "Đây là danh sách các mẫu laptop Lenovo Legion 5 mà chúng tôi tìm thấy cho bạn!"
+      "subtype": ["productName('quần màu hồng')", "most_sold"],
+      "message": "Đây là danh sách các quần màu hồng cho nam mà chúng tôi tìm thấy cho bạn!"
     }
 
     3. Người dùng: "Tìm laptop gaming dưới 20 triệu có giảm giá ít nhất 10%"

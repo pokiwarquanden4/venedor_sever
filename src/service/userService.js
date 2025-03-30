@@ -336,6 +336,11 @@ export const getWishList = async (req, res) => {
           where: {
             id: listId,
           },
+          include: [
+            {
+              model: db.StorageSpecific,
+            },
+          ],
         });
         for (let i = 0; i < products.length; i++) {
           obj.push(products[i].dataValues);
