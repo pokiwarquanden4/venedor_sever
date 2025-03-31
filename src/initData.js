@@ -2,9 +2,11 @@
 import db from "./models/index.js";  // Ensure the file has a `.js` extension if not using TypeScript
 import fs from "fs";
 import path from "path";
-import _ from "lodash";
+// import _, { includes } from "lodash";
 import { addDVectorDB, deleteVectorDB, queryVectorDB } from "./chatbot/vectorDB/vectorDBController.js";
 import getCollection, { clearVectorDB } from "./chatbot/vectorDB/collection.js";
+import { faker } from '@faker-js/faker';
+import { Op } from "sequelize";
 
 async function insertCategories() {
     try {
@@ -349,6 +351,103 @@ async function deleteProductInVectorDB() {
     }
 }
 
+async function createAddresses() {
+    try {
+        const users = await db.User.findAll({
+            where: {
+                roleName: 'User'
+            }
+        });
+
+        const addressPromises = users.map(user => {
+            return {
+                userId: user.id, // Link address to the user
+                name: user.name, // Add default or dynamic values as needed
+                company: faker.company.name(), // Generate a random company name
+                address1: faker.location.streetAddress(), // Generate a random street address
+                address2: faker.location.secondaryAddress(), // Generate a random secondary address (optional)
+                city: faker.location.city(), // Generate a random city name
+                country: faker.location.country(), // Generate a random country name
+                phoneNumber: faker.phone.number(), // Generate a random phone number
+            };
+        });
+
+        // Insert in chunks to avoid memory overload
+        const chunkArray = (array, chunkSize) =>
+            Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+                array.slice(i * chunkSize, i * chunkSize + chunkSize)
+            );
+
+        const chunkSize = 200; // Define the chunk size
+        const dataChunks = chunkArray(addressPromises, chunkSize); // Use addressPromises
+
+        for (const chunk of dataChunks) {
+            await db.Address.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
+        }
+
+        console.log("✅ Addresses inserted successfully!");
+    } catch (error) {
+        console.error("❌ Error inserting addresses:", error);
+    }
+}
+
+async function createHistory() {
+    const limit = 1000; // Lấy mỗi lần 1000 comment
+    let lastId = 0
+    let count = 0
+    while (true) {
+        const comments = await db.Comment.findAll({
+            where: {
+                parentId: null,
+                id: { [Op.gt]: lastId } // Chỉ lấy bản ghi có ID lớn hơn lastId
+            },
+            include: [
+                {
+                    model: db.User,
+                    where: { roleName: 'User' },
+                    include: [{ model: db.Address }]
+                },
+                {
+                    model: db.Storage,
+                    include: [{ model: db.StorageSpecific }]
+                }
+            ],
+            limit,
+        });
+
+        if (comments.length === 0) break; // Không còn dữ liệu để xử lý
+
+        lastId = comments[comments.length - 1].id;
+
+        const histories = comments.map(comment => {
+            const randomNumber = Math.floor(Math.random() * 3) + 1;
+            const addressData = comment.User.Addresses;
+            const storageData = comment.Storage;
+            const storageSpecificData = comment.Storage.StorageSpecifics;
+
+            return {
+                userId: comment.userId,
+                productId: comment.productId,
+                number: randomNumber,
+                cancel: 0,
+                status: 2,
+                addressId: addressData[Math.floor(Math.random() * addressData.length)].id,
+                paid: (storageData.price - (storageData.price * storageData.saleOff / 100)) * randomNumber,
+                specific: storageSpecificData.map(item => {
+                    const specific = item.specific.split('___');
+                    return specific[Math.floor(Math.random() * specific.length)];
+                }).join(' - '),
+            };
+        });
+
+        await db.History.bulkCreate(histories, { ignoreDuplicates: true, validate: true });
+        count += histories.length
+        console.log(`✅ Inserted ${count} records...`);
+    }
+    console.log("✅ All data inserted successfully!");
+
+}
+
 async function insertCategoryDetails() {
     try {
         const results = [];
@@ -403,6 +502,8 @@ async function run() {
         // await findProductInVectorDB();
         // await clearVectorDB()
         // await insertCategoryDetails()
+        // await createAddresses()
+        await createHistory()
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

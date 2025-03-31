@@ -69,6 +69,7 @@ export const purchase = async (req, res) => {
 
           await db.History.create({
             userId: user.dataValues.id,
+            specific: item.specific,
             addressId: req.body.addressId,
             productId: item.productId,
             number: item.quantity,
@@ -88,12 +89,10 @@ export const purchase = async (req, res) => {
 
           await mailing(
             "Thank you for buying",
-            `Product Name: ${product.productName} \nQuantity: ${
-              item.quantity
-            } \nPaid: ${
-              item.quantity *
-              (product.dataValues.price -
-                product.dataValues.price * (product.dataValues.saleOff / 100))
+            `Product Name: ${product.productName} \nQuantity: ${item.quantity
+            } \nPaid: ${item.quantity *
+            (product.dataValues.price -
+              product.dataValues.price * (product.dataValues.saleOff / 100))
             }$`,
             user.dataValues.email,
             product.dataValues.imgURL
