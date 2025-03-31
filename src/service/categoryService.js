@@ -9,7 +9,7 @@ import {
 } from "firebase/storage";
 import { firebaseConfig } from "../config/fireBase";
 import { responseWithJWT } from "./jwt/jwtService";
-import { Op } from "sequelize";
+import { Op, where } from "sequelize";
 import sequelize from "sequelize";
 import { queryVectorDB } from "../chatbot/vectorDB/vectorDBController";
 import getCollection from "../chatbot/vectorDB/collection";
@@ -326,28 +326,51 @@ const deleteFile = (url) => {
 export const getOrder = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
+      const { page = 1, limit = 10, productId } = req.query; // Default: page=1, limit=10
+      const offset = (page - 1) * limit;
+
       const user = await db.User.findOne({
-        include: [
-          {
-            model: db.Storage,
-            include: [
-              {
-                model: db.History,
-                include: [
-                  {
-                    model: db.Address,
-                  },
-                ],
-              },
-            ],
-          },
-        ],
-        where: {
-          account: req.body.jwtAccount,
-        },
+        include: [{ model: db.Storage }],
+        where: { account: req.body.jwtAccount },
       });
 
-      const response = responseWithJWT(req, user.dataValues.Storages, user);
+      // Check if user exists
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // If productId is undefined, get all storage IDs
+      let selectedProductIds = productId === 0
+        ? [productId]
+        : user.dataValues.Storages.map((storage) => storage.id);
+
+      // Count total histories for pagination
+      const totalHistories = await db.History.count({
+        where: { productId: selectedProductIds },
+      });
+
+      // Calculate total pages
+      const totalPages = Math.ceil(totalHistories / limit);
+
+      // Fetch paginated histories
+      const histories = await db.History.findAll({
+        where: { productId: selectedProductIds },
+        limit: parseInt(limit, 10),
+        offset: parseInt(offset, 10),
+        order: [["createdAt", "DESC"]],
+      });
+
+      // Create response
+      const response = responseWithJWT(
+        req,
+        {
+          storages: user.dataValues.Storages,
+          histories: histories,
+          totalPages: totalPages,
+        },
+        user
+      );
+
       res.status(200).json(response);
     }
   } catch (err) {
