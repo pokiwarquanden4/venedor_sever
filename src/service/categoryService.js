@@ -242,7 +242,7 @@ export const searchProduct = async (req, res) => {
   try {
     const data = req.query;
     const collection = await getCollection()
-    const results = await queryVectorDB(collection, data.content, 10)
+    const results = await queryVectorDB(collection, data.content, [], 10)
     const products = await db.Storage.findAll({
       where: {
         id: {

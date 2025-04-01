@@ -24,25 +24,42 @@ function extractCategoryIds(input) {
     return match ? match[1].match(/\d+/g).map(Number) : [];
 }
 
-export const queryVectorDB = async (collection, text, limit, categoryIds = []) => {
+export const queryVectorDB = async (collection, text, categoryIds = [], limit = undefined) => {
     const transformedIds = categoryIds.map(id => `c${id}`);
 
     let results
-    if (transformedIds.length) {
-        results = await collection.query({
-            queryTexts: text, // Chroma will embed this for you
-            whereDocument: transformedIds.length === 1 ?
-                { "$contains": transformedIds[0] } :
-                { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string
-            nResults: limit,
-        });
-    } else {
-        results = await collection.query({
-            queryTexts: text, // Chroma will embed this for you
-            nResults: limit,
-        });
-    }
+    if (limit) {
+        if (transformedIds.length) {
+            results = await collection.query({
+                queryTexts: text, // Chroma will embed this for you
+                whereDocument: transformedIds.length === 1 ?
+                    { "$contains": transformedIds[0] } :
+                    { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string
+                nResults: limit,
+            });
+        } else {
+            results = await collection.query({
+                queryTexts: text, // Chroma will embed this for you
+                nResults: limit,
+            });
+        }
 
+    } else {
+        if (transformedIds.length) {
+            results = await collection.query({
+                queryTexts: text, // Chroma will embed this for you
+                whereDocument: transformedIds.length === 1 ?
+                    { "$contains": transformedIds[0] } :
+                    { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string
+                nResults: 1000,
+            });
+        } else {
+            results = await collection.query({
+                queryTexts: text, // Chroma will embed this for you
+                nResults: 1000,
+            });
+        }
+    }
 
 
     return results;
