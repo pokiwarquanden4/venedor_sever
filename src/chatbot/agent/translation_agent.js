@@ -7,7 +7,7 @@ const systemPrompt = `
 
     Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng, chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
     {  
-      "decision": "Câu hỏi của người dùng có đầy đủ dấu câu chủ ngữ vị ngữ"
+      "decision": "Phiên bản thêm dấu và sửa lỗi chính tả từ câu hỏi gốc của người dùng"
     }
 \"\"\"`;
 

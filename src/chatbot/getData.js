@@ -54,26 +54,29 @@ const rankMatches = (arr, words) => {
         })
 };
 
-export async function getProductNameQuery(query, subtype, categoryIds) {
-    for (const queryType of subtype) {
-        if (queryType.startsWith("productName")) {
-            const productName = queryType.match(/productName\('(.+)'\)/)?.[1];
-            const collection = await getCollection()
-            const vectorData = await queryVectorDB(collection, productName, 50, categoryIds)
-            const ranking = rankMatches(vectorData.documents[0], productName.toLowerCase().match(/\p{L}+/gu) || [])
-            const idList = vectorData.ids[0]
-            const idListSorted = idList
-                .map((id, index) => ({ id, point: ranking[index] }))
-                .sort((a, b) => b.point - a.point)
-                .map(item => item.id);
+export async function getProductIdsSQL(data, categoryIds) {
+    let query = ''
+    if (data.startsWith("searchCharacter")) {
+        const productName = data.match(/searchCharacter\('(.+)'\)/)?.[1];
+        const collection = await getCollection();
+        const vectorData = await queryVectorDB(collection, productName, 50, categoryIds);
+        const ranking = rankMatches(vectorData.documents[0], productName.toLowerCase().match(/\p{L}+/gu) || []);
+        const idList = vectorData.ids[0];
 
-            query = query.replace(/WHERE/i, `WHERE id IN (${idListSorted.join(",")}) AND`);
-            query = query.replace(/ORDER BY/i, `ORDER BY FIELD(id, ${idListSorted.join(",")}),`);
+        const idListSorted = idList
+            .map((id, index) => ({ id, point: ranking[index] }))
+            .sort((a, b) => b.point - a.point)
+            .map(item => item.id);
+
+        if (idListSorted.length > 0) {
+            query = `SELECT * FROM storages WHERE id IN (${idListSorted.slice(0, 5).join(",")}) 
+                     ORDER BY FIELD(id, ${idListSorted.slice(0, 5).join(",")}) 
+                     LIMIT 5;`;
         }
     }
-
     return query;
 }
+
 
 export function getHotProductQuery(query, subtype) {
     for (const queryType of subtype) {

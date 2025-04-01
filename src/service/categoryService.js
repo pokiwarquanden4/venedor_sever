@@ -340,7 +340,7 @@ export const getOrder = async (req, res) => {
       }
 
       // If productId is undefined, get all storage IDs
-      let selectedProductIds = productId === 0
+      let selectedProductIds = productId != 0
         ? [productId]
         : user.dataValues.Storages.map((storage) => storage.id);
 
