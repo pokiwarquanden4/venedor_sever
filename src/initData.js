@@ -279,6 +279,7 @@ async function addProductToVectorDB() {
     try {
         const documents = [];
         const ids = []
+        const metadatas = []
 
         const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
         const listMenu = JSON.parse(rawData);
@@ -312,6 +313,12 @@ async function addProductToVectorDB() {
                     .map(num => `c${num}`)  // Prefix each number with "c"
                     .join('/');   // Join back into a string
 
+                metadatas.push(JSON.stringify({
+                    price: product.original_price,
+                    saleOff: Math.round(((product.original_price - product.price) / product.original_price) * 100),
+                    sold: product.quantity_sold.value,
+                    rate: product.rating_average,
+                }))
                 ids.push(JSON.stringify(product.id))
                 documents.push(doc)
             }
@@ -319,6 +326,7 @@ async function addProductToVectorDB() {
         const collection = await getCollection()
 
         await addDVectorDB(collection, {
+            metadatas,
             ids,
             documents
         }, 200)
@@ -498,7 +506,7 @@ async function run() {
         // await insertProducts();
         // await addComments();
         // await insertDescriptionsDetail();
-        // await addProductToVectorDB();
+        await addProductToVectorDB();
         // await findProductInVectorDB();
         // await clearVectorDB()
         // await insertCategoryDetails()

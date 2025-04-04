@@ -10,9 +10,11 @@ export const addDVectorDB = async (collection, data, chunkSize) => {
 
     const docChunks = chunkArray(data.documents, chunkSize);
     const idChunks = chunkArray(data.ids, chunkSize);
+    const metadataChunks = chunkArray(data.metadatas, chunkSize);
 
     for (let i = 0; i < docChunks.length; i++) {
-        await collection.add({
+        await collection.update({
+            metadatas: metadataChunks[i],
             documents: docChunks[i],
             ids: idChunks[i],
         });

@@ -36,65 +36,61 @@ const agentController = async (preData, message) => {
     // Guard
     const guardData = await guard_agent(preData, message)
     const guard_decision = guardData.decision
-    if (guard_decision !== 'allowed') return
-
-    // Classification
-    const classify = await classificationAgent(preData, message)
-
-    if (classify.decision === 'details_agent') {
-        // Handle details agent
-    } else if (classify.decision === 'order_taking_agent') {
-        // Handle order agent
-    } else if (classify.decision === 'recommendation_agent') {
-        // Filter by big category
-        const recomment = await recommentAgent(preData, message)
-        const recommentId = recomment.decision
-        console.log('recommentId: ' + recommentId)
-
-        // Filter by category
-        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
-        const categoryIds = recommentByCategory.decision
-        console.log('categoryId: ' + categoryIds)
-
-        const limit = 100
-
-        // Classification filtering
-        const generateResults = await generateSQL(preData, message, categoryIds, limit)
-        console.log(generateResults)
-
-
-        // Get data
-        if (generateResults.type.includes('sql') && generateResults.type.includes('vectorDB')) {
-            const sqlProducts = await getProducts(generateResults.decisionSQL)
-            const ids = await getProductIds(generateResults.decisionVectorDB, categoryIds)
-
-            const products = getTopRankedCommonIds(ids, sqlProducts)
-
-            return {
-                products: products,
-                message: generateResults.message
-            }
+    if (guard_decision !== 'allowed') {
+        return {
+            products: [],
+            message: guardData.message
         }
+    }
 
-        if (generateResults.type.includes('sql')) {
-            const sqlProducts = await getProducts(generateResults.decisionSQL)
-            return {
-                products: sqlProducts.slice(0, 5),
-                message: generateResults.message
-            }
+    // Filter by big category
+    const recomment = await recommentAgent(preData, message)
+    const recommentId = recomment.decision
+    console.log('recommentId: ' + recommentId)
+
+    // Filter by category
+    const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
+    const categoryIds = recommentByCategory.decision
+    console.log('categoryId: ' + categoryIds)
+
+    const limit = 100
+
+    // Classification filtering
+    const generateResults = await generateSQL(preData, message, categoryIds, limit)
+    console.log(generateResults)
+
+
+    // Get data
+    if (generateResults.type.includes('sql') && generateResults.type.includes('vectorDB')) {
+        const sqlProducts = await getProducts(generateResults.decisionSQL)
+        const ids = await getProductIds(generateResults.decisionVectorDB, categoryIds)
+
+        const products = getTopRankedCommonIds(ids, sqlProducts)
+
+        return {
+            products: products,
+            message: generateResults.message
         }
+    }
 
-        if (generateResults.type.includes('vectorDB')) {
-            const ids = await getProductIds(generateResults.decisionVectorDB, categoryIds)
+    if (generateResults.type.includes('sql')) {
+        const sqlProducts = await getProducts(generateResults.decisionSQL)
+        return {
+            products: sqlProducts.slice(0, 5),
+            message: generateResults.message
+        }
+    }
 
-            const query = `SELECT * FROM storages WHERE id IN (${ids.slice(0, 5).join(",")}) 
-                     ORDER BY FIELD(id, ${ids.slice(0, 5).join(",")});`;
+    if (generateResults.type.includes('vectorDB')) {
+        const ids = await getProductIds(generateResults.decisionVectorDB, categoryIds)
 
-            const sqlProducts = await getProducts(query)
-            return {
-                products: sqlProducts.slice(0, 5),
-                message: generateResults.message
-            }
+        const query = `SELECT * FROM storages WHERE id IN (${ids.slice(0, 5).join(",")}) 
+                 ORDER BY FIELD(id, ${ids.slice(0, 5).join(",")});`;
+
+        const sqlProducts = await getProducts(query)
+        return {
+            products: sqlProducts.slice(0, 5),
+            message: generateResults.message
         }
     }
 
