@@ -39,7 +39,6 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
     }
 
     // Execute the query with the assembled queryOptions
-    console.log(queryOptions)
     const results = await collection.query(queryOptions);
 
     // Check if _sortHint is provided and determine sorting field and order

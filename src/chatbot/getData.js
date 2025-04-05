@@ -72,7 +72,7 @@ export async function getProductIdsVectorDB(dataList, categoryIds) {
         if (data.startsWith("saleOff")) {
             const saleOffString = data.match(/saleOff\((.+)\)/)?.[1];
             if (saleOffString) {
-                const [minPercent, maxPercent] = saleOffString.split('-').map(Number);
+                const [min, max] = saleOffString.split('-').map(Number);
 
                 searchs.whereMetadatas = {
                     '$and': [
@@ -123,7 +123,7 @@ export async function getProductIdsVectorDB(dataList, categoryIds) {
         .map(item => item.id);
     let ids = []
     if (searchs._sortHint) {
-        ids = rerank(rankDefault, rankDocuments, [0.5, 0.5])
+        ids = rerank(rankDefault, rankDocuments, [0.7, 0.3])
     } else {
         ids = rankDocuments
     }
