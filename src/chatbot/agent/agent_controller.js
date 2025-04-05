@@ -1,30 +1,11 @@
 import { sequelize } from "../../config/connectDB"
-import { getBrandProductQuery, getDiscountQuery, getHotProductQuery, getPriceQuery, getProductIds } from "../getData"
+import { getProductIdsVectorDB } from "../getData"
 import classificationAgent from "./classification_agent"
 import generateSQL from "./generateSQl"
 import guard_agent from "./guard_agent"
 import recommentAgent from "./recomment_agent"
 import recommentCategoryAgent from "./recommentCategory"
 import translation_agent from "./translation_agent"
-
-function getTopRankedCommonIds(vectorDBIds, sqlDB) {
-    const results = []
-    console.log(vectorDBIds)
-    console.log(sqlDB.map(i => i.id))
-
-    for (let i = 0; i < vectorDBIds.length; i++) {
-        const id = vectorDBIds[i]
-        const product = sqlDB.find(item => item.id == id)
-        if (product) {
-            results.push(product)
-            if (results.length === 5) {
-                return results
-            }
-        }
-    }
-
-    return results;
-}
 
 const agentController = async (preData, message) => {
     // Guard
@@ -56,45 +37,17 @@ const agentController = async (preData, message) => {
     const limit = 100
 
     // Classification filtering
-    const generateResults = await generateSQL(preData, message, categoryIds, limit)
+    const generateResults = await generateSQL(preData, message)
     console.log(generateResults)
 
-
-    // Get data
-    if (generateResults.type.includes('sql') && generateResults.type.includes('vectorDB')) {
-        const sqlProducts = await getProducts(generateResults.decisionSQL)
-        const ids = await getProductIds(generateResults.decisionVectorDB, categoryIds)
-
-        const products = getTopRankedCommonIds(ids, sqlProducts)
-
-        return {
-            products: products,
-            message: generateResults.message
-        }
-    }
-
-    if (generateResults.type.includes('sql')) {
-        const sqlProducts = await getProducts(generateResults.decisionSQL)
-        return {
-            products: sqlProducts.slice(0, 5),
-            message: generateResults.message
-        }
-    }
-
-    if (generateResults.type.includes('vectorDB')) {
-        const ids = await getProductIds(generateResults.decisionVectorDB, categoryIds)
-
-        const query = `SELECT * FROM storages WHERE id IN (${ids.slice(0, 5).join(",")}) 
+    const ids = await getProductIdsVectorDB(generateResults.decision, categoryIds)
+    const query = `SELECT * FROM storages WHERE id IN (${ids.slice(0, 5).join(",")}) 
                  ORDER BY FIELD(id, ${ids.slice(0, 5).join(",")});`;
-
-        const sqlProducts = await getProducts(query)
-        return {
-            products: sqlProducts.slice(0, 5),
-            message: generateResults.message
-        }
+    const sqlProducts = await getProducts(query)
+    return {
+        products: sqlProducts.slice(0, 5),
+        message: generateResults.message
     }
-
-    return
 }
 
 async function getProducts(query) {

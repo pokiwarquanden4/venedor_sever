@@ -1,50 +1,6 @@
 import getCollection from "./vectorDB/collection";
 import { queryVectorDB } from "./vectorDB/vectorDBController";
 
-export function getPriceQuery(query, subtype) {
-    for (const queryType of subtype) {
-        if (queryType === "lowest_price") {
-            query = query.replace(/ORDER BY/, `ORDER BY price*(1 - saleOff / 100) ASC,`);
-        } else if (queryType === "highest_price") {
-            query = query.replace(/ORDER BY/, `ORDER BY price*(1 - saleOff / 100) DESC,`);
-        } else if (queryType.startsWith("price(")) {
-            const match = queryType.match(/price\((\d+)-to-(\d+|infinity)\)/);
-
-            const minPrice = Number(match[1]);
-            const maxPrice = match[2] === "infinity" ? Infinity : Number(match[2]);
-
-            query = query.replace(
-                /WHERE/,
-                `WHERE price * (1 - saleOff / 100) >= ${minPrice} ${maxPrice !== Infinity ? `AND price * (1 - saleOff / 100) <= ${maxPrice}` : ""
-                } AND`
-            );
-        }
-
-
-    }
-    return query;
-}
-
-
-export function getDiscountQuery(query, subtype) {
-    for (const queryType of subtype) {
-        if (queryType === "lowest_discount") {
-            query = query.replace(/ORDER BY/, `ORDER BY saleOff ASC,`);
-        }
-        else if (queryType === "highest_discount") {
-            query = query.replace(/ORDER BY/, `ORDER BY saleOff DESC,`);
-        }
-        else if (queryType.startsWith("discount(") && queryType.endsWith(")")) {
-            const match = queryType.match(/discount\((\d+)% to (\d+)%\)/);
-            if (!match) return null;
-
-            const [_, minDiscount, maxDiscount] = match.map(Number);
-            query = query.replace(/WHERE/, `WHERE saleOff BETWEEN ${minDiscount} AND ${maxDiscount} AND`);
-        }
-    }
-    return query;
-}
-
 const rankMatches = (arr, words) => {
     return arr
         .map(str => {
@@ -54,47 +10,122 @@ const rankMatches = (arr, words) => {
         })
 };
 
-export async function getProductIds(data, categoryIds) {
-    let ids = []
-    if (data.startsWith("searchCharacter")) {
-        const productName = data.match(/searchCharacter\('(.+)'\)/)?.[1];
-        const collection = await getCollection();
-        const vectorData = await queryVectorDB(collection, productName, categoryIds);
-        const ranking = rankMatches(vectorData.documents[0], productName.toLowerCase().match(/\p{L}+/gu) || []);
-        const idList = vectorData.ids[0];
+const rerank = (arr1, arr2, rate) => {
+    // Step 1: Assign points to arr1 and arr2 based on their positions and the provided rate
+    const arr1Point = arr1.map((id, index) => ({
+        id: id,
+        point: (index + 1) * rate[0]
+    }));
 
-        ids = idList
-            .map((id, index) => ({ id, point: ranking[index] }))
-            .sort((a, b) => b.point - a.point)
-            .map(item => item.id);
+    const arr2Point = arr2.map((id, index) => ({
+        id: id,
+        point: (index + 1) * rate[1]
+    }));
+
+    // Step 2: Merge the two arrays based on their corresponding IDs
+    const mergedPoints = arr1Point.map(item1 => {
+        // Find the corresponding item in arr2Point using the same ID
+        const item2 = arr2Point.find(item => item.id === item1.id);
+        // Calculate the total point as the sum of points from both arrays
+        return {
+            id: item1.id,
+            totalPoint: item1.point + (item2 ? item2.point : 0) // Avoid null if no match found
+        };
+    });
+
+    // Step 3: Sort the merged array based on the total point in ascending order
+    const sortedByPoints = mergedPoints.sort((a, b) => a.totalPoint - b.totalPoint);
+
+    // Step 4: Return the sorted list of IDs based on the total points
+    return sortedByPoints.map(item => item.id);
+};
+
+
+export async function getProductIdsVectorDB(dataList, categoryIds) {
+    const transformedIds = categoryIds.map(id => `c${id}`);
+    const searchs = {
+        text: '',
+        whereDocuments: transformedIds.length === 1 ?
+            { "$contains": transformedIds[0] } :
+            { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string,
+        whereMetadatas: {},
+    }
+
+    dataList.forEach(async (data) => {
+        if (data.startsWith("description")) {
+            const productName = data.match(/description\(['"](.+?)['"]\)/)?.[1];
+            searchs.text = productName;
+        }
+        if (data.startsWith("priceRange")) {
+            const priceRangeString = data.match(/priceRange\((.+)\)/)?.[1];
+            if (priceRangeString) {
+                const [min, max] = priceRangeString.split('-').map(Number);
+
+                searchs.whereMetadatas = {
+                    '$and': [
+                        { price: { '$gte': min } },
+                        { price: { '$lte': max } }
+                    ]
+                }
+            }
+        }
+        if (data.startsWith("saleOff")) {
+            const saleOffString = data.match(/saleOff\((.+)\)/)?.[1];
+            if (saleOffString) {
+                const [minPercent, maxPercent] = saleOffString.split('-').map(Number);
+
+                searchs.whereMetadatas = {
+                    '$and': [
+                        { saleOff: { '$gte': min } },
+                        { saleOff: { '$lte': max } }
+                    ]
+                }
+            }
+        }
+
+        if (data.startsWith("mostBuy")) {
+            const mostBuyString = data.match(/mostBuy\((.+)\)/)?.[1];
+            const boolVal = mostBuyString === 'true';
+
+            if (boolVal) {
+                // Prioritize products with the highest 'sold'
+                searchs._sortHint = { field: "sold", order: "desc" }; // Sort by 'sold' descending
+            } else {
+                // Prioritize products with the lowest 'sold'
+                searchs._sortHint = { field: "sold", order: "asc" }; // Sort by 'sold' ascending
+            }
+        }
+
+
+        if (data.startsWith("topRate")) {
+            const topRateString = data.match(/topRate\((.+)\)/)?.[1];
+            const boolVal = topRateString === 'true';
+
+            if (boolVal) {
+                // Sort descending by rate (top-rated first)
+                searchs._sortHint = { field: "rate", order: "desc" };
+            } else {
+                // Sort ascending by rate (lowest-rated first)
+                searchs._sortHint = { field: "rate", order: "asc" };
+            }
+        }
+
+    })
+
+    const collection = await getCollection();
+    const vectorData = await queryVectorDB(collection, searchs);
+    const ranking = rankMatches(vectorData.documents[0], searchs.text.toLowerCase().match(/\p{L}+/gu) || []);
+
+    const rankDefault = vectorData.ids[0];
+    const rankDocuments = rankDefault
+        .map((id, index) => ({ id, point: ranking[index] }))
+        .sort((a, b) => b.point - a.point)
+        .map(item => item.id);
+    let ids = []
+    if (searchs._sortHint) {
+        ids = rerank(rankDefault, rankDocuments, [0.5, 0.5])
+    } else {
+        ids = rankDocuments
     }
     return ids;
-}
-
-
-export function getHotProductQuery(query, subtype) {
-    for (const queryType of subtype) {
-        if (queryType === "most_sold") {
-            query = query.replace(/ORDER BY/, `ORDER BY sold DESC,`);
-        } else if (queryType === "least_sold") {
-            query = query.replace(/ORDER BY/, `ORDER BY sold ASC,`);
-        } else if (queryType === "best_rated") {
-            query = query.replace(/ORDER BY/, `ORDER BY rate DESC,`);
-        } else if (queryType === "worst_rated") {
-            query = query.replace(/ORDER BY/, `ORDER BY rate ASC,`);
-        }
-    }
-    return query;
-}
-
-export function getBrandProductQuery(query, subtype) {
-    for (const queryType of subtype) {
-        if (queryType.startsWith("brand_name")) {
-            const brand = queryType.match(/brand_name\('(.+)'\)/)?.[1];
-
-            query = query.replace(/WHERE/, `WHERE LOWER(brandName) = LOWER('${brand}') AND`);
-        }
-    }
-
-    return query;
 }

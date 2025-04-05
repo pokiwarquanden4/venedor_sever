@@ -2,58 +2,54 @@ import { zodResponseFormat } from "openai/helpers/zod.mjs";
 import { callAI } from "./utils";
 import { z } from "zod";
 
-function generateSystemPrompt(categoryIds, limit) {
+function generateSystemPrompt() {
   return `
-  \"\"\"Bạn là một trợ lý AI chuyên tạo truy vấn SQL để tìm kiếm sản phẩm theo yêu cầu của khách hàng.
+  """Bạn là một trợ lý AI có nhiệm vụ phân tích yêu cầu tìm kiếm sản phẩm của người dùng.
 
-  **Dữ liệu sản phẩm được lưu trong bảng \`storages\` với cấu trúc sau:**
-    - \`price\`: Giá gốc sản phẩm
-    - \`sold\`: Số lượng đã bán
-    - \`rate\`: Điểm đánh giá trung bình (1-5)
-    - \`saleOff\`: Phần trăm giảm giá (0-100), ví dụ 10 nghĩa là giảm 10%
-    - \`createdAt\`: Ngày tạo sản phẩm
+  Các tiêu chí có thể xuất hiện trong yêu cầu gồm:
 
-  **Yêu cầu bắt buộc:**
-    - Viết câu truy vấn SQL để tìm sản phẩm phù hợp với yêu cầu của khách hàng.
+  - priceRange(Money-Money): Khoảng giá, ví dụ: priceRange(100000-200000), priceRange(100000-infinity)
+  - saleOff(percent-percent): Mức giảm giá, ví dụ: saleOff(0-10), saleOff(50-100)
+  - mostBuy(boolean): Sản phẩm được mua nhiều, ví dụ: mostBuy(true)
+  - topRate(boolean): Sản phẩm được đánh giá cao, ví dụ: topRate(true)
+  - description(string): Mô tả sản phẩm mong muốn, ví dụ: description('Túi xách màu vàng')
 
-  **Cách tính toán:**
-    - Giá thực tế = \`price - (price * saleOff / 100)\`
+  Trường "decision" là một mảng chứa **một hoặc nhiều** tiêu chí phù hợp với yêu cầu người dùng.
 
-  **Định dạng kết quả JSON mong muốn:**
+  Hãy phân tích và trả về kết quả đúng định dạng JSON sau (không cần giải thích gì thêm):
+
   {
-    "decisionSQL": "<Câu SQL truy vấn> (thêm chính xác đoạn (${categoryIds.map(id => `categoryList LIKE '%/${id}/%'`).join(" OR ")}) vào câu SQL nhưng hãy đảm bảo SQL hợp lệ) LIMIT ${limit}",
-    "decisionVectorDB": "searchCharacter('<Từ khóa tìm kiếm>')",
-    "message": "<Thông báo kết quả>",
-    "type": ["vectorDB", "sql"]
+    "decision": [priceRange(Money-Money), saleOff(percent-percent), mostBuy(boolean), topRate(boolean), description(string)],
+    "message": "Đưa ra câu trả lời"
   }
 
-  Lưu ý: 
-    Chỉ được sử dụng các cột sau: \`price\`, \`sold\`, \`rate\`, \`saleOff\`, \`createdAt\`. Không truy vấn các cột khác.  
-    Nếu người dùng đưa ra mức giá nhất định mà họ có thể trả điều đó có nghĩa là họ muốn giá nó có thể lớn hơn hoặc nhỏ hơn giá mà họ đưa ra một chút
-    Nếu có các từ như: "hàng cao cấp""cao cấp nhất","hạng sang","sang trọng","đắt tiền","xa xỉ","premium","VIP" ta có thể hiểu rằng người dùng muốn sắp xếp theo giá giảm dần.
-    Nghiêm cấm tự ý query theo trường categoryList chỉ nhận data tôi đã thêm vào ${categoryIds.map(id => `categoryList LIKE '%/${id}/%'`).join(" OR ")}
+  Ví dụ:
 
-  **Ví dụ đúng:**
-  - **Yêu cầu:** "Tìm kính mắt tròn thương hiệu Ray-Ban giá tốt"
-  - **Đầu ra mong muốn:**
+  Input: "Tìm cho mình vài đôi giày thể thao dưới 1 triệu, đang giảm giá mạnh"
+  Output:
   {
-    "decisionSQL": "SELECT * FROM storages WHERE (categoryList LIKE '%/1234/%' OR categoryList LIKE '%/5678/%' OR categoryList LIKE '%/91011/%') ORDER BY price - price * saleOff / 100 ASC LIMIT ${limit};",
-    "decisionVectorDB": "searchCharacter('kính mắt tròn Ray-Ban')",
-    "message": "Đây là danh sách kính mắt tròn mà chúng tôi tìm thấy cho bạn",
-    "type": ["vectorDB", "sql"]
+    "decision": [priceRange(0-1000000), saleOff(30-100), description("giày thể thao")],
+    "message": "Đây là những đôi giày thể thao dưới 1 triệu đang giảm giá mạnh"
   }
-\"\"\"`;
+
+  Input: "Túi xách màu đen được đánh giá cao"
+  Output:
+  {
+    "decision": [topRate(true), description("túi xách màu đen")],
+    "message": "Dưới đây là các túi xách màu đen được đánh giá cao"
+  }
+  """
+  `;
 }
 
+
 const RecommentClassificationFormat = z.object({
-  decisionSQL: z.string(),
-  decisionVectorDB: z.string(),
+  decision: z.array(z.string()),
   message: z.string(),
-  type: z.array(z.string())
 });
 
-const generateSQL = async (preData, message, categoryIds, limit) => {
-  const systemPrompt = generateSystemPrompt(categoryIds, limit)
+const generateSQL = async (preData, message) => {
+  const systemPrompt = generateSystemPrompt()
 
   const data = [
     ...preData,

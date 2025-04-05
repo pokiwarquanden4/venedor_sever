@@ -21,51 +21,50 @@ export const addDVectorDB = async (collection, data, chunkSize) => {
     }
 }
 
-function extractCategoryIds(input) {
-    const match = input.match(/categoryList:\s*([c\d\/]+)/);
-    return match ? match[1].match(/\d+/g).map(Number) : [];
-}
+export const queryVectorDB = async (collection, searchs, limit = undefined) => {
+    // Initialize queryOptions object with common properties
+    const queryOptions = {
+        queryTexts: searchs.text, // Chroma will embed this for you
+        nResults: limit || 100,  // Use provided limit or default to 1000
+    };
 
-export const queryVectorDB = async (collection, text, categoryIds = [], limit = undefined) => {
-    const transformedIds = categoryIds.map(id => `c${id}`);
-
-    let results
-    if (limit) {
-        if (transformedIds.length) {
-            results = await collection.query({
-                queryTexts: text, // Chroma will embed this for you
-                whereDocument: transformedIds.length === 1 ?
-                    { "$contains": transformedIds[0] } :
-                    { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string
-                nResults: limit,
-            });
-        } else {
-            results = await collection.query({
-                queryTexts: text, // Chroma will embed this for you
-                nResults: limit,
-            });
-        }
-
-    } else {
-        if (transformedIds.length) {
-            results = await collection.query({
-                queryTexts: text, // Chroma will embed this for you
-                whereDocument: transformedIds.length === 1 ?
-                    { "$contains": transformedIds[0] } :
-                    { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string
-                nResults: 1000,
-            });
-        } else {
-            results = await collection.query({
-                queryTexts: text, // Chroma will embed this for you
-                nResults: 1000,
-            });
-        }
+    // Add whereDocuments if it contains any filters
+    if (Object.keys(searchs.whereDocuments).length) {
+        queryOptions.whereDocument = searchs.whereDocuments;
     }
 
+    // Add whereMetadatas if it contains any filters
+    if (Object.keys(searchs.whereMetadatas).length) {
+        queryOptions.where = searchs.whereMetadatas;
+    }
+
+    // Execute the query with the assembled queryOptions
+    console.log(queryOptions)
+    const results = await collection.query(queryOptions);
+
+    // Check if _sortHint is provided and determine sorting field and order
+    const { field, order } = searchs._sortHint || { field: null, order: null };
+
+    // Determine the sort order: -1 for descending, 1 for ascending
+    const sortOrder = order === 'desc' ? -1 : 1;
+
+    // Check if the field exists in the metadatas
+    if (field) {
+        // Create an array of indices sorted by the specified field
+        const sortedIndices = results.metadatas[0]
+            .map((metadata, index) => ({ index, value: metadata[field] })) // Get the field value and index
+            .sort((a, b) => (a.value - b.value) * sortOrder) // Sort based on the field in the specified order
+            .map(item => item.index); // Get the sorted indices
+
+        // Sort the arrays based on the sorted indices
+        results.metadatas[0] = sortedIndices.map(index => results.metadatas[0][index]);
+        results.documents[0] = sortedIndices.map(index => results.documents[0][index]);
+        results.ids[0] = sortedIndices.map(index => results.ids[0][index]);
+    }
 
     return results;
 };
+
 
 export const deleteVectorDB = async (collection) => {
     await collection.delete({
