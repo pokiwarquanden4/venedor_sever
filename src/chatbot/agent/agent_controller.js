@@ -40,7 +40,7 @@ const agentController = async (preData, message) => {
     const generateResults = await generateSQL(preData, message)
     console.log(generateResults)
 
-    const ids = await getProductIdsVectorDB(generateResults.decision, categoryIds)
+    const ids = await getProductIdsVectorDB(generateResults.decision, recommentId, categoryIds)
     const query = `SELECT * FROM storages WHERE id IN (${ids.slice(0, 5).join(",")}) 
                  ORDER BY FIELD(id, ${ids.slice(0, 5).join(",")});`;
     const sqlProducts = await getProducts(query)

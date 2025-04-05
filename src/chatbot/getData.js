@@ -41,15 +41,18 @@ const rerank = (arr1, arr2, rate) => {
 };
 
 
-export async function getProductIdsVectorDB(dataList, categoryIds) {
-    const transformedIds = categoryIds.map(id => `c${id}`);
+export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) {
+    const transformedIds = categoryIds.filter(id => recommentId !== id).map(id => {
+        return [`c${recommentId}`, `c${id}`]
+    });
     const searchs = {
         text: '',
-        whereDocuments: transformedIds.length === 1 ?
-            { "$contains": transformedIds[0] } :
-            { "$or": transformedIds.map(id => ({ "$contains": id })) }, // Match any search string,
+        whereDocuments: transformedIds.length === 0
+            ? { "$contains": `c${recommentId}` }
+            : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) }, // Kết hợp các nhóm "$and" bằng "$or"
         whereMetadatas: {},
-    }
+    };
+    console.log(JSON.stringify(searchs))
 
     dataList.forEach(async (data) => {
         if (data.startsWith("description")) {
