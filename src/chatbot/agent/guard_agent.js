@@ -35,7 +35,6 @@ const GuardFormat = z.object({
 
 const guard_agent = async (preData, message) => {
     const data = [
-        ...preData,
         {
             role: "assistant",
             content: systemPrompt,

@@ -22,7 +22,6 @@ const ClassificationFormat = z.object({
 
 const classificationAgent = async (preData, message) => {
     const data = [
-        ...preData,
         {
             role: "assistant",
             content: systemPrompt,

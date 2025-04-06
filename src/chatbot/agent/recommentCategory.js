@@ -51,7 +51,6 @@ const recommentCategoryAgent = async (preData, message, recommentId) => {
     systemPrompt = generateSystemPrompt(categories)
 
     const data = [
-        ...preData,
         {
             role: "assistant",
             content: systemPrompt,

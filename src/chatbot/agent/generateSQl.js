@@ -23,6 +23,10 @@ function generateSystemPrompt() {
     "message": "Đưa ra câu trả lời"
   }
 
+  Lưu ý: 
+    -Nêu người dùng muốn mua ở giá cụ thể ví dụ như 200k thì hãy tìm xung quanh giá đó (180k - 220k)
+    -description("...") luôn luôn có 2 dấu nháy kép
+
   Ví dụ:
 
   Input: "Tìm cho mình vài đôi giày thể thao dưới 1 triệu, đang giảm giá mạnh"
@@ -52,7 +56,6 @@ const generateSQL = async (preData, message) => {
   const systemPrompt = generateSystemPrompt()
 
   const data = [
-    ...preData,
     {
       role: "assistant",
       content: systemPrompt,

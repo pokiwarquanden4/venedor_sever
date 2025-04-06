@@ -8,7 +8,7 @@ import recommentCategoryAgent from "./recommentCategory"
 import translation_agent from "./translation_agent"
 
 const agentController = async (preData, message) => {
-    // Guard
+    // Translation and combine history
     const translation = await translation_agent(preData, message)
     const translation_decision = translation.decision
     message = translation_decision
@@ -25,16 +25,26 @@ const agentController = async (preData, message) => {
     }
 
     // Filter by big category
-    const recomment = await recommentAgent(preData, message)
-    const recommentId = recomment.decision
-    console.log('recommentId: ' + recommentId)
+    let recommentId
+    let categoryIds = []
+    const previousChoices = []
+    while (true) {
+        console.log('in')
+        const recomment = await recommentAgent(preData, message, previousChoices)
+        recommentId = recomment.decision
+        console.log('recommentId: ' + recommentId)
 
-    // Filter by category
-    const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
-    const categoryIds = recommentByCategory.decision
-    console.log('categoryId: ' + categoryIds)
+        // Filter by category
+        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
+        categoryIds = recommentByCategory.decision
+        console.log('categoryId: ' + categoryIds)
+        if (categoryIds.length) {
+            break
+        } else {
+            previousChoices.push(recommentId)
+        }
+    }
 
-    const limit = 100
 
     // Classification filtering
     const generateResults = await generateSQL(preData, message)

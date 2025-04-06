@@ -2,61 +2,65 @@ import { zodResponseFormat } from "openai/helpers/zod.mjs";
 import { callAI } from "./utils";
 import { z } from "zod";
 
-const categoryIds = [
-    "8322", "1883", "1789", "2549", "1815", "1882", "1520", "8594",
-    "931", "4384", "1975", "915", "17166", "1846", "1686", "4221",
-    "1703", "1801", "27498", "44792", "8371", "6000", "11312", "976",
-    "27616", "15078"
+const categories = [
+    { id: 8322, name: "Nhà Sách Tiki (Sách các thể loại)" },
+    { id: 1883, name: "Nhà Cửa - Đời Sống (Nội thất - Trang trí nhà tắm nhà vệ sinh nhà bếp, Vệ sinh - Tẩy rửa,  Tủ đồ - Lưu trữ, Chăn ga gối nệm, Dụng cụ & Sửa chữa, An ninh - An toàn ngôi nhà, Thiết bị - Vật tư điện nước)" },
+    { id: 1789, name: "Điện Thoại - Máy Tính Bảng" },
+    { id: 2549, name: "Đồ Chơi - Mẹ & Bé" },
+    { id: 1815, name: "Thiết Bị Số - Phụ Kiện Số (Tai Nghe, Cáp và Dây Sạc, Phụ Kiện Máy Tính và Điện Thoại, Loa và Thiết Bị Âm Thanh, Phụ Kiện Điện Thoại, Phụ Kiện Laptop)" },
+    { id: 1882, name: "Điện Gia Dụng (Thiết bị nấu cơm, nấu cháo, hầm, hấp, Thiết bị chiên, nướng, nấu lẩu, Máy làm bánh, làm sữa, làm mì, làm kem, Thiết bị pha chế - Xay ép - Đánh trứng, Bếp & Thiết bị đun nấu, Thiết bị điện nhà bếp khác, Quạt và thiết bị làm mát, Thiết bị sưởi & tạo độ ẩm, Thiết bị vệ sinh và làm sạch nhà cửa,  Thiết bị lọc nước & nước nóng lạnh, Thiết bị ủi quần áo, giặt sấy, Máy cạo râu, cắt tóc, làm tóc, Thiết bị may vá)" },
+    { id: 1520, name: "Làm Đẹp - Sức Khỏe (Chăm sóc cá nhân, Chăm sóc sức khỏe,  Dụng cụ làm đẹp làm sạch và chăm sóc cá nhân, Sản phẩm dinh dưỡng)" },
+    { id: 8594, name: "Ô Tô - Xe Máy - Xe Đạp" },
+    { id: 931, name: "Thời Trang Nữ" },
+    { id: 4384, name: "Bách Hóa Online (Sữa và sản phẩm từ sữa, Cà phê - Trà - Đồ uống - Đồ uống có cồn, Gạo - Ngũ cốc - Bột, Mì - Bún - Cháo ăn liền, Bánh - Kẹo - Snack, Đồ khô đóng gói, Gia vị - Nước chấm - Dầu, Thực phẩm bổ sung - Hữu cơ - Ăn kiêng, Chăm sóc thú cưng, Đồ dùng gia đình - Vệ sinh)" },
+    { id: 1975, name: "Thể Thao - Dã Ngoại (Dụng Cụ Thể Thao & Gym, Dụng Cụ Dã Ngoại, Phụ Kiện Bơi Lội, Phụ Kiện Golf, Thực Phẩm & Dinh Dưỡng Thể Thao)" },
+    { id: 915, name: "Thời Trang Nam" },
+    { id: 1846, name: "Laptop - Máy Vi Tính - Linh Kiện" },
+    { id: 1686, name: "Giày - Dép Nam" },
+    { id: 4221, name: "Điện Tử - Điện Lạnh (Tivi & Thiết Bị Liên Quan, Máy Lạnh & Điều Hòa, Máy Giặt & Sấy, Máy Rửa Chén & Phụ Kiện, Tủ Lạnh & Tủ Đông, Máy Nước Nóng)" },
+    { id: 1703, name: "Giày - Dép Nữ" },
+    { id: 1801, name: "Máy Ảnh - Máy Quay Phim" },
+    { id: 27498, name: "Phụ Kiện Thời Trang" },
+    { id: 44792, name: "NGON (Thực phẩm, đồ ăn)" },
+    { id: 8371, name: "Đồng Hồ & Trang Sức" },
+    { id: 6000, name: "Balo & Vali" },
+    { id: 976, name: "Túi Thời Trang Nữ" },
+    { id: 27616, name: "Túi Thời Trang Nam" },
+    { id: 15078, name: "Chăm Sóc Nhà Cửa (Sản Phẩm Vệ Sinh Nhà Cửa, Giặt Giũ & Chăm Sóc Quần Áo, Diệt Côn Trùng, Khử Mùi & Thơm, Giấy Vệ Sinh & Khăn Giấy)" }
 ];
 
 
-const systemPrompt = `
-    \"\"\" 
+function generateSystemPrompt(previousChoices) {
+    const formatted = categories
+        .filter(c => !previousChoices.includes(c.id))
+        .map(c => `${c.id} - ${c.name}`)
+        .join('\n');
+
+    return `
     Bạn đóng vai một chatbot gợi ý sản phẩm cho một trang thương mại điện tử. Dựa trên danh mục sản phẩm được cung cấp, bạn sẽ phân tích yêu cầu của người dùng và đề xuất danh mục phù hợp nhất.
 
     Danh mục sản phẩm có sẵn (mã ID - mô tả):
-     8322 - Nhà Sách Tiki (Sách các thể loại)
-     1883 - Nhà Cửa - Đời Sống (Sản phẩm nội thất, gia dụng)
-     1789 - Điện Thoại - Máy Tính Bảng
-     2549 - Đồ Chơi - Mẹ & Bé
-     1815 - Thiết Bị Số - Phụ Kiện Số
-     1882 - Điện Gia Dụng (Thiết bị gia dụng nhỏ: nồi cơm điện, lò vi sóng, bếp từ, máy hút bụi, quạt điện, máy xay sinh tố, máy ép trái cây, bàn ủi, nồi chiên không dầu, v.v.)
-     1520 - Làm Đẹp - Sức Khỏe
-     8594 - Ô Tô - Xe Máy - Xe Đạp
-     931 - Thời Trang Nữ
-     4384 - Bách Hóa Online
-     1975 - Thể Thao - Dã Ngoại
-     915 - Thời Trang Nam
-     17166 - Cross Border - Hàng Quốc Tế
-     1846 - Laptop - Máy Vi Tính - Linh Kiện
-     1686 - Giày - Dép Nam
-     4221 - Điện Tử - Điện Lạnh (Thiết bị điện tử & điện lạnh lớn: TV, loa, tủ lạnh, máy giặt, máy lạnh, lò nướng, bếp điện, v.v.)
-     1703 - Giày - Dép Nữ
-     1801 - Máy Ảnh - Máy Quay Phim
-     27498 - Phụ Kiện Thời Trang
-     44792 - NGON (Thực phẩm, đồ ăn)
-     8371 - Đồng Hồ & Trang Sức
-     6000 - Balo & Vali
-     11312 - Voucher - Dịch Vụ
-     976 - Túi Thời Trang Nữ
-     27616 - Túi Thời Trang Nam
-     15078 - Chăm Sóc Nhà Cửa
-
+    
+    ${formatted}
+    
     Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
     {
       "decision": "<mã danh mục>"
       "message": ""
     }
-    \"\"\"`;
+        `;
+}
 
 const RecommentFormat = z.object({
     decision: z.number(),
     message: z.string(),
 });
 
-const recommentAgent = async (preData, message) => {
+const recommentAgent = async (preData, message, previousChoices) => {
+    console.log(previousChoices)
+    const systemPrompt = generateSystemPrompt(previousChoices)
+
     const data = [
-        ...preData,
         {
             role: "assistant",
             content: systemPrompt,

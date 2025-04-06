@@ -49,10 +49,11 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
         text: '',
         whereDocuments: transformedIds.length === 0
             ? { "$contains": `c${recommentId}` }
-            : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) }, // Kết hợp các nhóm "$and" bằng "$or"
+            : transformedIds.length === 1
+                ? { "$and": transformedIds[0].map(id => ({ "$contains": id })) }  // Ensure that it's a single dictionary
+                : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) }, // Kết hợp các nhóm "$and" bằng "$or"
         whereMetadatas: {},
     };
-    console.log(JSON.stringify(searchs))
 
     dataList.forEach(async (data) => {
         if (data.startsWith("description")) {

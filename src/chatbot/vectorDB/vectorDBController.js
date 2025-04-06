@@ -38,31 +38,52 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
         queryOptions.where = searchs.whereMetadatas;
     }
 
-    // Execute the query with the assembled queryOptions
-    const results = await collection.query(queryOptions);
+    let results;
+    let retryCount = 0;
 
-    // Check if _sortHint is provided and determine sorting field and order
-    const { field, order } = searchs._sortHint || { field: null, order: null };
+    // Loop to handle reducing nResults by half until it runs successfully
+    while (retryCount < 5) { // Limit the number of retries to prevent infinite loops
+        try {
+            // Execute the query with the assembled queryOptions
+            results = await collection.query(queryOptions);
 
-    // Determine the sort order: -1 for descending, 1 for ascending
-    const sortOrder = order === 'desc' ? -1 : 1;
+            // Check if _sortHint is provided and determine sorting field and order
+            const { field, order } = searchs._sortHint || { field: null, order: null };
 
-    // Check if the field exists in the metadatas
-    if (field) {
-        // Create an array of indices sorted by the specified field
-        const sortedIndices = results.metadatas[0]
-            .map((metadata, index) => ({ index, value: metadata[field] })) // Get the field value and index
-            .sort((a, b) => (a.value - b.value) * sortOrder) // Sort based on the field in the specified order
-            .map(item => item.index); // Get the sorted indices
+            // Determine the sort order: -1 for descending, 1 for ascending
+            const sortOrder = order === 'desc' ? -1 : 1;
 
-        // Sort the arrays based on the sorted indices
-        results.metadatas[0] = sortedIndices.map(index => results.metadatas[0][index]);
-        results.documents[0] = sortedIndices.map(index => results.documents[0][index]);
-        results.ids[0] = sortedIndices.map(index => results.ids[0][index]);
+            // Check if the field exists in the metadatas
+            if (field) {
+                // Create an array of indices sorted by the specified field
+                const sortedIndices = results.metadatas[0]
+                    .map((metadata, index) => ({ index, value: metadata[field] })) // Get the field value and index
+                    .sort((a, b) => (a.value - b.value) * sortOrder) // Sort based on the field in the specified order
+                    .map(item => item.index); // Get the sorted indices
+
+                // Sort the arrays based on the sorted indices
+                results.metadatas[0] = sortedIndices.map(index => results.metadatas[0][index]);
+                results.documents[0] = sortedIndices.map(index => results.documents[0][index]);
+                results.ids[0] = sortedIndices.map(index => results.ids[0][index]);
+            }
+
+            // If no error occurs, break the loop
+            break;
+        } catch (error) {
+            // If an error occurs, reduce nResults by half and retry
+            queryOptions.nResults = Math.floor(queryOptions.nResults / 2);
+            retryCount++;
+
+            // If nResults has become too small, throw the error
+            if (queryOptions.nResults <= 1) {
+                throw new Error('Failed to fetch results after multiple retries');
+            }
+        }
     }
 
     return results;
 };
+
 
 
 export const deleteVectorDB = async (collection) => {
