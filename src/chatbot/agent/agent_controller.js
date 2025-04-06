@@ -29,7 +29,6 @@ const agentController = async (preData, message) => {
     let categoryIds = []
     const previousChoices = []
     while (true) {
-        console.log('in')
         const recomment = await recommentAgent(preData, message, previousChoices)
         recommentId = recomment.decision
         console.log('recommentId: ' + recommentId)

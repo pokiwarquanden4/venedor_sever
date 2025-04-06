@@ -57,7 +57,6 @@ const RecommentFormat = z.object({
 });
 
 const recommentAgent = async (preData, message, previousChoices) => {
-    console.log(previousChoices)
     const systemPrompt = generateSystemPrompt(previousChoices)
 
     const data = [
