@@ -118,19 +118,23 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
 
     const collection = await getCollection();
     const vectorData = await queryVectorDB(collection, searchs);
-    console.log(vectorData.documents[0])
-    const ranking = rankMatches(vectorData.documents[0], searchs.text.toLowerCase().match(/\p{L}+/gu) || []);
 
-    const rankDefault = vectorData.ids[0];
-    const rankDocuments = rankDefault
+    const ranking = rankMatches(vectorData.defaultData.documents[0], searchs.text.toLowerCase().match(/\p{L}+/gu) || []);
+
+    const rankDefault = vectorData.defaultData.ids[0];
+    const sortedIds = vectorData.sortedIds
+
+    const rerankDefault = rankDefault
         .map((id, index) => ({ id, point: ranking[index] }))
         .sort((a, b) => b.point - a.point)
         .map(item => item.id);
     let ids = []
+
+
     if (searchs._sortHint) {
-        ids = rerank(rankDefault, rankDocuments, [0.7, 0.3])
+        ids = rerank(rerankDefault, sortedIds, [0.7, 0.3])
     } else {
-        ids = rankDocuments
+        ids = rerankDefault
     }
     return ids;
 }

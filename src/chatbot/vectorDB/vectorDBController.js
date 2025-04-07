@@ -40,6 +40,7 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
 
     let results;
     let retryCount = 0;
+    let sortedIds = undefined
 
     // Loop to handle reducing nResults by half until it runs successfully
     while (retryCount < 5) { // Limit the number of retries to prevent infinite loops
@@ -67,9 +68,7 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
                     .map(item => item.index); // Get the sorted indices
 
                 // Sort the arrays based on the sorted indices
-                results.metadatas[0] = sortedIndices.map(index => results.metadatas[0][index]);
-                results.documents[0] = sortedIndices.map(index => results.documents[0][index]);
-                results.ids[0] = sortedIndices.map(index => results.ids[0][index]);
+                sortedIds = sortedIndices.map(index => results.ids[0][index]);
             }
 
             // If no error occurs, break the loop
@@ -86,10 +85,11 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
         }
     }
 
-    return results;
+    return {
+        defaultData: results,
+        sortedIds: sortedIds
+    };
 };
-
-
 
 export const deleteVectorDB = async (collection) => {
     await collection.delete({
