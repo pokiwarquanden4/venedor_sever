@@ -12,7 +12,7 @@ function generateSystemPrompt() {
   - saleOff(percent-percent): Mức giảm giá, ví dụ: saleOff(0-10), saleOff(50-100)
   - mostBuy(boolean): Sản phẩm được mua nhiều, ví dụ: mostBuy(true)
   - topRate(boolean): Sản phẩm được đánh giá cao, ví dụ: topRate(true)
-  - description(string): Mô tả sản phẩm mong muốn, ví dụ: description('Túi xách màu vàng')
+  - description(string): Mô tả sản phẩm mong muốn hoặc tên hoặc loại sản phẩm họ muốn tìm, ví dụ: description("Túi xách màu vàng"), description("Máy tính")
 
   Trường "decision" là một mảng chứa **một hoặc nhiều** tiêu chí phù hợp với yêu cầu người dùng.
 
