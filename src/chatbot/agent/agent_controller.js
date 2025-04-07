@@ -1,4 +1,5 @@
 import { sequelize } from "../../config/connectDB"
+import db, { Sequelize } from "../../models"
 import { getProductIdsVectorDB } from "../getData"
 import classificationAgent from "./classification_agent"
 import generateSQL from "./generateSQl"
@@ -28,21 +29,32 @@ const agentController = async (preData, message) => {
     let recommentId
     let categoryIds = []
     const previousChoices = []
-    while (true) {
-        const recomment = await recommentAgent(preData, message, previousChoices)
-        recommentId = recomment.decision
-        console.log('recommentId: ' + recommentId)
+    let attempt = 0;
 
-        // Filter by category
-        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId)
-        categoryIds = recommentByCategory.decision
-        console.log('categoryId: ' + categoryIds)
+    while (true) {
+        if (attempt >= 2) {
+            return {
+                products: [],
+                message: "Xin lỗi chúng tôi không thể tìm thấy sản phẩm mà bạn mong muốn, điều này có thể do shop hiện đang không có nguồn hàng"
+            }
+        }
+
+        const recomment = await recommentAgent(preData, message, previousChoices);
+        recommentId = recomment.decision;
+        console.log('recommentId: ' + recommentId);
+
+        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId);
+        categoryIds = recommentByCategory.decision;
+        console.log('categoryId: ' + categoryIds);
+
         if (categoryIds.length) {
-            break
+            break;
         } else {
-            previousChoices.push(recommentId)
+            previousChoices.push(recommentId);
+            attempt++; // tăng số lần thử
         }
     }
+
 
 
     // Classification filtering
@@ -50,25 +62,30 @@ const agentController = async (preData, message) => {
     console.log(generateResults)
 
     const ids = await getProductIdsVectorDB(generateResults.decision, recommentId, categoryIds)
-    const query = `SELECT * FROM storages WHERE id IN (${ids.slice(0, 5).join(",")}) 
-                 ORDER BY FIELD(id, ${ids.slice(0, 5).join(",")});`;
-    const sqlProducts = await getProducts(query)
+    const storageIds = ids.slice(0, 5).map(id => Number(id));
+    const sqlProducts = await getProducts(storageIds)
     return {
         products: sqlProducts.slice(0, 5),
         message: generateResults.message
     }
 }
 
-async function getProducts(query) {
-    return await executeQuery(query);
+async function getProducts(storageIds) {
+    return await executeQuery(storageIds);
 }
 
-async function executeQuery(query, params = []) {
+async function executeQuery(storageIds) {
     try {
-        console.log(query)
-        const results = await sequelize.query(query, {
-            replacements: params,
-            type: sequelize.QueryTypes.SELECT
+        console.log(storageIds)
+        const results = await db.Storage.findAll({
+            where: {
+                id: storageIds
+            },
+            include: [
+                {
+                    model: db.StorageSpecific
+                }
+            ],
         });
         return results;
     } catch (error) {

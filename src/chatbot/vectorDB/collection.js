@@ -1,6 +1,6 @@
 import { ChromaClient, DefaultEmbeddingFunction } from "chromadb";
 const client = new ChromaClient();
-const defaultEF = new DefaultEmbeddingFunction();
+const defaultEF = new DefaultEmbeddingFunction("multi-qa-mpnet-base-cos-v1");
 
 const getCollection = async () => {
     let collection = await client.getCollection({

@@ -13,7 +13,7 @@ export const addDVectorDB = async (collection, data, chunkSize) => {
     const metadataChunks = chunkArray(data.metadatas, chunkSize);
 
     for (let i = 0; i < docChunks.length; i++) {
-        await collection.update({
+        await collection.add({
             metadatas: metadataChunks[i],
             documents: docChunks[i],
             ids: idChunks[i],
@@ -46,6 +46,11 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
         try {
             // Execute the query with the assembled queryOptions
             results = await collection.query(queryOptions);
+
+            if (results.documents[0].length === 0) {
+                delete queryOptions.whereDocument
+                results = await collection.query(queryOptions);
+            }
 
             // Check if _sortHint is provided and determine sorting field and order
             const { field, order } = searchs._sortHint || { field: null, order: null };

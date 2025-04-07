@@ -143,7 +143,8 @@ export const askAI = async (req, res) => {
         rate: product.rate,
         brandName: product.brandName,
         saleOff: product.saleOff,
-        imgURL: product.imgURL
+        imgURL: product.imgURL,
+        StorageSpecifics: product.StorageSpecifics
       }
     })
 

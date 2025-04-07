@@ -118,6 +118,7 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
 
     const collection = await getCollection();
     const vectorData = await queryVectorDB(collection, searchs);
+    console.log(vectorData.documents[0])
     const ranking = rankMatches(vectorData.documents[0], searchs.text.toLowerCase().match(/\p{L}+/gu) || []);
 
     const rankDefault = vectorData.ids[0];
