@@ -4,9 +4,71 @@ import { getProductIdsVectorDB } from "../getData"
 import classificationAgent from "./classification_agent"
 import generateSQL from "./generateSQl"
 import guard_agent from "./guard_agent"
+import optionSelect_agent from "./optionSelect_agent"
 import recommentAgent from "./recomment_agent"
 import recommentCategoryAgent from "./recommentCategory"
 import translation_agent from "./translation_agent"
+import stringSimilarity from 'string-similarity'
+
+function extractValuesInParentheses(str) {
+    const matches = str.match(/\(([^)]+)\)/g);
+    return matches ? matches.map(s => s.slice(1, -1)) : [];
+}
+
+async function compareOptionsFunc(preData, message, storageOptions, storageIds, sqlProducts) {
+    //Select options 
+    const options = await Promise.all(
+        storageOptions.map(async (option) => {
+            const value = await optionSelect_agent(preData, message, option)
+            return value.decision
+        })
+    )
+
+    const optionsExtract = options.map((option, index) => {
+        return {
+            id: storageIds[index],
+            option: extractValuesInParentheses(option)
+        }
+    })
+
+    const op = sqlProducts.map(p => {
+        const specific = {}
+        p.StorageSpecifics.forEach(df => {
+            specific[df.specificName] = df.specific.split('___')
+        })
+        return {
+            id: p.id,
+            specific: specific
+        }
+    })
+
+    const results = op.map((item) => {
+        const options = optionsExtract.find(option => option.id === item.id).option
+        const specificRanking = {}
+        Object.keys(item.specific).forEach(key => {
+            const val = item.specific[key]
+            const newRank = val.map(text => {
+                let highestSimilar = 0
+                options.forEach(option => {
+                    const similarity = stringSimilarity.compareTwoStrings(option, text);
+                    if (similarity > highestSimilar) highestSimilar = similarity
+                })
+
+                return highestSimilar
+            })
+
+            specificRanking[key] = newRank
+        })
+
+        return {
+            id: item.id,
+            specific: item.specific,
+            specificVector: specificRanking
+        }
+    })
+
+    return results
+}
 
 const agentController = async (preData, message) => {
     // Translation and combine history
@@ -55,42 +117,34 @@ const agentController = async (preData, message) => {
         }
     }
 
-
-
     // Classification filtering
     const generateResults = await generateSQL(preData, message)
     console.log(generateResults)
 
-    const ids = await getProductIdsVectorDB(generateResults.decision, recommentId, categoryIds)
-    const storageIds = ids.slice(0, 5).map(id => Number(id));
-    const sqlProducts = await getProducts(storageIds)
-    return {
-        products: sqlProducts.slice(0, 5),
-        message: generateResults.message
-    }
-}
+    const data = await getProductIdsVectorDB(generateResults.decision, recommentId, categoryIds)
+    const storageIds = data.slice(0, 4).map(item => Number(item.id));
+    const storageOptions = data.slice(0, 4).map(item => item.options)
 
-async function getProducts(storageIds) {
-    return await executeQuery(storageIds);
-}
-
-async function executeQuery(storageIds) {
-    try {
-        console.log(storageIds)
-        const results = await db.Storage.findAll({
-            where: {
-                id: storageIds
+    const sqlProducts = await db.Storage.findAll({
+        where: {
+            id: storageIds
+        },
+        include: [
+            {
+                model: db.StorageSpecific
             },
-            include: [
-                {
-                    model: db.StorageSpecific
-                }
-            ],
-        });
-        return results;
-    } catch (error) {
-        console.error("Database query error:", error);
-        throw error;
+            {
+                model: db.StorageSpecificPics
+            }
+        ],
+    });
+
+    const compareOptions = await compareOptionsFunc(preData, message, storageOptions, storageIds, sqlProducts)
+
+    return {
+        products: sqlProducts,
+        compareOptions: compareOptions,
+        message: generateResults.message
     }
 }
 

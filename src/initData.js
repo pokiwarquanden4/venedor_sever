@@ -108,7 +108,7 @@ async function insertProducts() {
                     rate: product.rating_average,
                     description: productDetail.description,
                     brandName: product.brand_name,
-                    number: productDetail.stock_item?.qty || 100,
+                    number: 100,
                     saleOff: Math.round(((product.original_price - product.price) / product.original_price) * 100),
                     imgURL: product.thumbnail_url,
                     listImgURL: productDetail.images.map((img) => img.base_url).join("___"),
@@ -225,7 +225,6 @@ async function addComments() {
     }
 }
 
-
 async function insertDescriptionsDetail() {
     try {
         const results = [];
@@ -272,6 +271,82 @@ async function insertDescriptionsDetail() {
         console.log("✅ Products inserted successfully!");
     } catch (error) {
         console.error("❌ Error inserting products:", error);
+    }
+}
+
+async function insertDescriptionsDetailImage() {
+    try {
+        const results = [];
+        const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
+        const listMenu = JSON.parse(rawData);
+
+        for (const menu of listMenu) {
+            const linkParts = menu.link.split("/");
+            const urlKey = linkParts[linkParts.length - 2];
+            const categoryId = parseInt(menu.link.split("/").pop().replace("c", ""), 10);
+            const rawDataProduct = fs.readFileSync(`src/data/products/${urlKey}/products.json`, 'utf-8');
+            const rawDataProductDetails = fs.readFileSync(`src/data/products/${urlKey}/productDetails.json`, 'utf-8');
+            const productDetails = JSON.parse(rawDataProductDetails);
+            const products = JSON.parse(rawDataProduct);
+
+            for (let index = 0; index < products.length; index++) {
+                const product = products[index];
+                const productDetail = productDetails[index];
+
+                if (product.quantity_sold === null || !productDetail.configurable_products) continue;
+                productDetail.configurable_products.forEach((item) => {
+                    results.push({
+                        option1: item.option1,
+                        option2: item.option2,
+                        storageId: product.id,
+                        price: item.original_price,
+                        saleOff: Math.round(((item.original_price - item.price) / item.original_price) * 100),
+                        number: Math.floor(Math.random() * 101),
+                        imgURL: item.thumbnail_url,
+                        listImgURL: item.images.map(img => img.large_url).join('___'),
+                    });
+                })
+            }
+        }
+
+        // Insert in chunks to avoid memory overload
+        const chunkArray = (array, chunkSize) =>
+            Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+                array.slice(i * chunkSize, i * chunkSize + chunkSize)
+            );
+
+        const chunkSize = 100;
+        const dataChunks = chunkArray(results, chunkSize);
+
+        for (const chunk of dataChunks) {
+            await db.StorageSpecificPics.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
+        }
+
+        console.log("✅ Products inserted successfully!");
+    } catch (error) {
+        console.error("❌ Error inserting products:", error);
+    }
+}
+
+async function updateProductNumber() {
+    try {
+        // Lấy tất cả sản phẩm
+        const allProducts = await db.Storage.findAll();
+
+        // Duyệt qua từng sản phẩm
+        for (const product of allProducts) {
+            // Tính tổng 'number' từ StorageSpecificPics có liên quan
+            const total = await db.StorageSpecificPics.sum("number", {
+                where: { storageId: product.id },
+            });
+
+            // Cập nhật lại 'number' trong Storage
+            await product.update({ number: total || 0 }); // Nếu không có dữ liệu, set là 0
+        }
+
+        console.log("✅ Products update successfully!");
+    } catch (error) {
+        console.error("❌ Error updating products:", error);
     }
 }
 
@@ -332,28 +407,6 @@ async function addProductToVectorDB() {
         }, 200)
 
         console.log("✅ Products inserted successfully!");
-    } catch (error) {
-        console.error("❌ Error inserting products:", error);
-    }
-}
-
-async function findProductInVectorDB() {
-    try {
-        const collection = await getCollection()
-        await queryVectorDB(collection)
-
-        console.log("✅ Products query successfully!");
-    } catch (error) {
-        console.error("❌ Error inserting products:", error);
-    }
-}
-
-async function deleteProductInVectorDB() {
-    try {
-        const collection = await getCollection()
-        await deleteVectorDB(collection)
-
-        console.log("✅ Products delete successfully!");
     } catch (error) {
         console.error("❌ Error inserting products:", error);
     }
@@ -503,15 +556,15 @@ async function insertCategoryDetails() {
 async function run() {
     try {
         // await insertCategories();
-        // await insertProducts();
-        // await addComments();
-        // await insertDescriptionsDetail();
-        await addProductToVectorDB();
-        // await findProductInVectorDB();
-        // await clearVectorDB()
         // await insertCategoryDetails()
+        // await insertProducts();
+        // await insertDescriptionsDetail();
+        // await insertDescriptionsDetailImage()
+        // await updateProductNumber()
+        // await addComments();
         // await createAddresses()
         // await createHistory()
+        // await addProductToVectorDB();
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

@@ -1,8 +1,15 @@
 import getCollection from "./vectorDB/collection";
 import { queryVectorDB } from "./vectorDB/vectorDBController";
 
-const rankMatches = (arr, words) => {
-    return arr
+function extractOptions(str) {
+    const match = str.match(/Options:\s*(.*?)\s*categoryList:/);
+    return match ? match[1].trim() : null;
+}
+
+const rankMatches = (data, words) => {
+    const documents = data.documents[0]
+
+    return documents
         .map(str => {
             const lowerStr = str.toLowerCase();
             const uniqueMatches = new Set(words.filter(word => new RegExp(word, 'u').test(lowerStr)));
@@ -12,9 +19,10 @@ const rankMatches = (arr, words) => {
 
 const rerank = (arr1, arr2, rate) => {
     // Step 1: Assign points to arr1 and arr2 based on their positions and the provided rate
-    const arr1Point = arr1.map((id, index) => ({
-        id: id,
-        point: (index + 1) * rate[0]
+    const arr1Point = arr1.map((item, index) => ({
+        id: item.id,
+        point: (index + 1) * rate[0],
+        options: item.options
     }));
 
     const arr2Point = arr2.map((id, index) => ({
@@ -29,6 +37,7 @@ const rerank = (arr1, arr2, rate) => {
         // Calculate the total point as the sum of points from both arrays
         return {
             id: item1.id,
+            options: item1.options,
             totalPoint: item1.point + (item2 ? item2.point : 0) // Avoid null if no match found
         };
     });
@@ -37,9 +46,13 @@ const rerank = (arr1, arr2, rate) => {
     const sortedByPoints = mergedPoints.sort((a, b) => a.totalPoint - b.totalPoint);
 
     // Step 4: Return the sorted list of IDs based on the total points
-    return sortedByPoints.map(item => item.id);
+    return sortedByPoints.map(item => {
+        return {
+            id: item.id,
+            options: item.options
+        }
+    });
 };
-
 
 export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) {
     const transformedIds = categoryIds.filter(id => recommentId !== id).map(id => {
@@ -119,22 +132,24 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
     const collection = await getCollection();
     const vectorData = await queryVectorDB(collection, searchs);
 
-    const ranking = rankMatches(vectorData.defaultData.documents[0], searchs.text.toLowerCase().match(/\p{L}+/gu) || []);
-
-    const rankDefault = vectorData.defaultData.ids[0];
+    const ranking = rankMatches(vectorData.defaultData, searchs.text.toLowerCase().match(/\p{L}+/gu) || []);
     const sortedIds = vectorData.sortedIds
 
-    const rerankDefault = rankDefault
-        .map((id, index) => ({ id, point: ranking[index] }))
+    const rerankData = vectorData.defaultData.ids[0]
+        .map((id, index) => ({ id, options: extractOptions(vectorData.defaultData.documents[0][index]), point: ranking[index] }))
         .sort((a, b) => b.point - a.point)
-        .map(item => item.id);
-    let ids = []
-
+        .map(item => {
+            return {
+                id: item.id,
+                options: item.options
+            }
+        });
+    let final = []
 
     if (searchs._sortHint) {
-        ids = rerank(rerankDefault, sortedIds, [0.7, 0.3])
+        final = rerank(rerankData, sortedIds, [0.7, 0.3])
     } else {
-        ids = rerankDefault
+        final = rerankData
     }
-    return ids;
+    return final;
 }

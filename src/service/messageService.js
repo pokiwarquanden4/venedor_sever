@@ -135,16 +135,39 @@ export const askAI = async (req, res) => {
     const data = await askChatbot(cacheMessage, message)
 
     const results = data.products.map((product) => {
+      const options = data.compareOptions.find(item => item.id === product.id)
+      const optionKey = [];
+
+      for (const key in options.specificVector) {
+        const vector = options.specificVector[key];
+        const labels = options.specific[key];
+
+        const max = Math.max(...vector);
+        const maxIndex = vector.indexOf(max);
+
+        optionKey.push(labels[maxIndex]);
+      }
+
+      const storageSpecificPics = product.StorageSpecificPics.find(item => {
+        if (
+          item.option1 === optionKey[0] && (item.option2 || undefined) === optionKey[1]
+        ) {
+          return true
+        }
+        return false
+      }) || product.StorageSpecificPics[0]
+
       return {
         id: product.id,
         categoryId: product.categoryId,
         productName: product.productName,
-        price: product.price,
+        price: storageSpecificPics.price,
         rate: product.rate,
         brandName: product.brandName,
-        saleOff: product.saleOff,
-        imgURL: product.imgURL,
-        StorageSpecifics: product.StorageSpecifics
+        saleOff: storageSpecificPics.saleOff,
+        imgURL: storageSpecificPics.imgURL,
+        StorageSpecifics: product.StorageSpecifics,
+        storageSpecificPics: storageSpecificPics
       }
     })
 

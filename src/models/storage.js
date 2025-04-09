@@ -96,6 +96,9 @@ module.exports = (sequelize, DataTypes) => {
     Storage.hasMany(models.StorageSpecific, {
       foreignKey: "storageId",
     });
+    Storage.hasMany(models.StorageSpecificPics, {
+      foreignKey: "storageId",
+    });
     Storage.hasMany(models.Cart, {
       foreignKey: "productId",
     });
