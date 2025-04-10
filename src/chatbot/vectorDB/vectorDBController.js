@@ -1,5 +1,5 @@
 
-export const addDVectorDB = async (collection, data, chunkSize) => {
+export const addDVectorDB = async (collection, data, chunkSize = 200) => {
     function chunkArray(array, chunkSize) {
         const chunks = [];
         for (let i = 0; i < array.length; i += chunkSize) {
@@ -20,6 +20,38 @@ export const addDVectorDB = async (collection, data, chunkSize) => {
         });
     }
 }
+
+// Delete documents from the vector database by IDs
+export const deleteDVectorDB = async (collection, ids, chunkSize = 200) => {
+    for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        await collection.delete({ ids: chunk });
+    }
+};
+
+// Update documents in the vector database
+export const updateDVectorDB = async (collection, data, chunkSize = 200) => {
+    function chunkArray(array, chunkSize) {
+        const chunks = [];
+        for (let i = 0; i < array.length; i += chunkSize) {
+            chunks.push(array.slice(i, i + chunkSize));
+        }
+        return chunks;
+    }
+
+    const docChunks = chunkArray(data.documents, chunkSize);
+    const idChunks = chunkArray(data.ids, chunkSize);
+    const metadataChunks = chunkArray(data.metadatas, chunkSize);
+
+    for (let i = 0; i < docChunks.length; i++) {
+        await collection.update({
+            ids: idChunks[i],
+            documents: docChunks[i],
+            metadatas: metadataChunks[i],
+        });
+    }
+};
+
 
 export const queryVectorDB = async (collection, searchs, limit = undefined) => {
     // Initialize queryOptions object with common properties

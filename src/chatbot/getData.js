@@ -63,8 +63,8 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
         whereDocuments: transformedIds.length === 0
             ? { "$contains": `c${recommentId}` }
             : transformedIds.length === 1
-                ? { "$and": transformedIds[0].map(id => ({ "$contains": id })) }  // Ensure that it's a single dictionary
-                : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) }, // Kết hợp các nhóm "$and" bằng "$or"
+                ? { "$and": transformedIds[0].map(id => ({ "$contains": id })) }  
+                : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) }, 
         whereMetadatas: {},
     };
 

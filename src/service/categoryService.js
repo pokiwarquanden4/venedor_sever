@@ -11,7 +11,7 @@ import { firebaseConfig } from "../config/fireBase";
 import { responseWithJWT } from "./jwt/jwtService";
 import { Op, where } from "sequelize";
 import sequelize from "sequelize";
-import { queryVectorDB } from "../chatbot/vectorDB/vectorDBController";
+import { addDVectorDB, queryVectorDB, updateDVectorDB } from "../chatbot/vectorDB/vectorDBController";
 import getCollection from "../chatbot/vectorDB/collection";
 
 initializeApp(firebaseConfig);
@@ -66,18 +66,45 @@ export const createProduct = async (req, res) => {
         disable: false,
       };
 
+      //Add to vectorDB
+      const collection = await getCollection()
+      let docs = `${newProduct.productName} `
+      if (JSON.parse(req.body.specifics)) {
+        docs += `Options: `
+        JSON.parse(req.body.specifics).forEach((item) => {
+            docs += `${item.specificName}(${item.specific.join(', ')}) `
+        })
+      }
+      docs += 'categoryList: '
+      docs += req.body.categoryList
+          .split(',')   
+          .map(num => `c${num}`)  
+          .join('/'); 
+          
+      const metadatas = {
+        price: newProduct.price,
+        saleOff: newProduct.saleOff,
+        sold: newProduct.sold,
+        rate: newProduct.rate,
+      }
+      const ids = JSON.stringify(newProduct.id)
+      await addDVectorDB(collection, {
+        metadatas: [metadatas],
+        ids: [ids],
+        documents: [docs]
+      })
+
       // Create Storage and get storageId
-      const createdStorage = await db.Storage.create(newProduct);
-      const storageId = createdStorage.id; // Get the generated ID
+      await db.Storage.create(newProduct);
 
       // Create Specifics using the new storageId
       const formattedData = JSON.parse(req.body.specifics).map((data) => ({
         specificName: data.specificName,
-        storageId: storageId, // Use the newly created storageId
-        specific: data.specific.join("___"), // Convert array to string
+        storageId: newProduct.id, 
+        specific: data.specific.join("___"), 
       }));
 
-      await db.StorageSpecific.bulkCreate(formattedData); // Insert all specifics at once
+      await db.StorageSpecific.bulkCreate(formattedData); 
 
       const response = responseWithJWT(req, newProduct, user);
       res.status(200).json(response);
@@ -229,6 +256,34 @@ export const editProduct = async (req, res) => {
         where: { id: toDelete.map((item) => item.id) },
       });
       await db.StorageSpecific.bulkCreate(toAdd);
+
+      //Update to vectorDB
+      const collection = await getCollection()
+      let docs = `${obj.productName} `
+      if (JSON.parse(req.body.specifics)) {
+        docs += `Options: `
+        JSON.parse(req.body.specifics).forEach((item) => {
+            docs += `${item.specificName}(${item.specific.join(', ')}) `
+        })
+      }
+      docs += 'categoryList: '
+      docs += req.body.categoryList
+          .split(',')   
+          .map(num => `c${num}`)  
+          .join('/'); 
+          
+      const metadatas = {
+        price: obj.price,
+        saleOff: obj.saleOff,
+        sold: currentProduct.dataValues.sold,
+        rate: currentProduct.dataValues.rate,
+      }
+      const ids = JSON.stringify(currentProduct.dataValues.id)
+      await updateDVectorDB(collection, {
+        metadatas: [metadatas],
+        ids: [ids],
+        documents: [docs]
+      })
 
       const response = responseWithJWT(req, "Success", user);
       res.status(200).json(response);
