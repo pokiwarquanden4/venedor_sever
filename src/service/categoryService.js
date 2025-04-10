@@ -333,6 +333,9 @@ export const searchProductById = async (req, res) => {
         {
           model: db.StorageSpecific,
         },
+        {
+          model: db.StorageSpecificPics,
+        },
       ],
       where: {
         id: data.id,
