@@ -157,17 +157,31 @@ export const askAI = async (req, res) => {
         return false
       }) || product.StorageSpecificPics[0]
 
+      if (storageSpecificPics) {
+        return {
+          id: product.id,
+          categoryId: product.categoryId,
+          productName: product.productName,
+          price: storageSpecificPics.price,
+          rate: product.rate,
+          brandName: product.brandName,
+          saleOff: storageSpecificPics.saleOff,
+          imgURL: storageSpecificPics.imgURL,
+          StorageSpecifics: product.StorageSpecifics,
+          storageSpecificPics: storageSpecificPics
+        }
+      }
+
       return {
         id: product.id,
         categoryId: product.categoryId,
         productName: product.productName,
-        price: storageSpecificPics.price,
+        price: product.price,
         rate: product.rate,
         brandName: product.brandName,
-        saleOff: storageSpecificPics.saleOff,
-        imgURL: storageSpecificPics.imgURL,
-        StorageSpecifics: product.StorageSpecifics,
-        storageSpecificPics: storageSpecificPics
+        saleOff: product.saleOff,
+        imgURL: product.imgURL,
+        StorageSpecifics: product.StorageSpecifics
       }
     })
 

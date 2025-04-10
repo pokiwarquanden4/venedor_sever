@@ -388,9 +388,11 @@ async function addProductToVectorDB() {
                     .map(num => `c${num}`)  // Prefix each number with "c"
                     .join('/');   // Join back into a string
 
+                const saleOff = Math.round(((product.original_price - product.price) / product.original_price) * 100)
                 metadatas.push({
                     price: product.original_price,
-                    saleOff: Math.round(((product.original_price - product.price) / product.original_price) * 100),
+                    saleOff: saleOff,
+                    discountedPrice: product.original_price - (product.original_price * saleOff / 100),
                     sold: product.quantity_sold.value,
                     rate: product.rating_average,
                 })
@@ -564,7 +566,7 @@ async function run() {
         // await addComments();
         // await createAddresses()
         // await createHistory()
-        // await addProductToVectorDB();
+        await addProductToVectorDB();
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

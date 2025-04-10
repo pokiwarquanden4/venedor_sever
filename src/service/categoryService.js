@@ -72,15 +72,15 @@ export const createProduct = async (req, res) => {
       if (JSON.parse(req.body.specifics)) {
         docs += `Options: `
         JSON.parse(req.body.specifics).forEach((item) => {
-            docs += `${item.specificName}(${item.specific.join(', ')}) `
+          docs += `${item.specificName}(${item.specific.join(', ')}) `
         })
       }
       docs += 'categoryList: '
       docs += req.body.categoryList
-          .split(',')   
-          .map(num => `c${num}`)  
-          .join('/'); 
-          
+        .split(',')
+        .map(num => `c${num}`)
+        .join('/');
+
       const metadatas = {
         price: newProduct.price,
         saleOff: newProduct.saleOff,
@@ -100,11 +100,11 @@ export const createProduct = async (req, res) => {
       // Create Specifics using the new storageId
       const formattedData = JSON.parse(req.body.specifics).map((data) => ({
         specificName: data.specificName,
-        storageId: newProduct.id, 
-        specific: data.specific.join("___"), 
+        storageId: newProduct.id,
+        specific: data.specific.join("___"),
       }));
 
-      await db.StorageSpecific.bulkCreate(formattedData); 
+      await db.StorageSpecific.bulkCreate(formattedData);
 
       const response = responseWithJWT(req, newProduct, user);
       res.status(200).json(response);
@@ -263,15 +263,15 @@ export const editProduct = async (req, res) => {
       if (JSON.parse(req.body.specifics)) {
         docs += `Options: `
         JSON.parse(req.body.specifics).forEach((item) => {
-            docs += `${item.specificName}(${item.specific.join(', ')}) `
+          docs += `${item.specificName}(${item.specific.join(', ')}) `
         })
       }
       docs += 'categoryList: '
       docs += req.body.categoryList
-          .split(',')   
-          .map(num => `c${num}`)  
-          .join('/'); 
-          
+        .split(',')
+        .map(num => `c${num}`)
+        .join('/');
+
       const metadatas = {
         price: obj.price,
         saleOff: obj.saleOff,
@@ -354,7 +354,7 @@ export const searchCategoryProduct = async (req, res) => {
     const offset = (page - 1) * limit;
 
     let whereCondition = {};
-    if (categoryId) {
+    if (categoryId && categoryId != 0) {
       whereCondition.categoryId = categoryId;
     }
 

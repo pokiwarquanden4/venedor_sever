@@ -63,8 +63,8 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
         whereDocuments: transformedIds.length === 0
             ? { "$contains": `c${recommentId}` }
             : transformedIds.length === 1
-                ? { "$and": transformedIds[0].map(id => ({ "$contains": id })) }  
-                : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) }, 
+                ? { "$and": transformedIds[0].map(id => ({ "$contains": id })) }
+                : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) },
         whereMetadatas: {},
     };
 
@@ -80,8 +80,8 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
 
                 searchs.whereMetadatas = {
                     '$and': [
-                        { price: { '$gte': min } },
-                        { price: { '$lte': max } }
+                        { discountedPrice: { '$gte': min } },
+                        { discountedPrice: { '$lte': max } }
                     ]
                 }
             }
