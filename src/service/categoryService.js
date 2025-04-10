@@ -307,7 +307,7 @@ export const searchProduct = async (req, res) => {
     const products = await db.Storage.findAll({
       where: {
         id: {
-          [Op.in]: results.ids[0].map(i => Number(i)), // Convert each string ID to a number
+          [Op.in]: results.defaultData.ids[0].map(i => Number(i)), // Convert each string ID to a number
         },
       },
       include: [
