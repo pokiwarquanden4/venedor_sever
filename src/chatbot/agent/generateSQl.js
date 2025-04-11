@@ -14,7 +14,7 @@ function generateSystemPrompt() {
   - topRate(boolean): Sản phẩm được đánh giá cao, ví dụ: topRate(true)
   - description(string): Mô tả sản phẩm mong muốn hoặc tên hoặc loại sản phẩm họ muốn tìm, ví dụ: description("Túi xách màu vàng"), description("Máy tính")
 
-  Trường "decision" là một mảng chứa **một hoặc nhiều** tiêu chí phù hợp với yêu cầu người dùng.
+  Trường "decision" là một mảng chứa **tối đa một tiêu chí duy nhất cho mỗi loại** ở trên (tức là mỗi loại chỉ xuất hiện một lần trong mảng nếu có).
 
   Hãy phân tích và trả về kết quả đúng định dạng JSON sau (không cần giải thích gì thêm):
 

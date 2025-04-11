@@ -71,17 +71,16 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
     }
 
     let results;
-    let retryCount = 0;
     let sortedIds = undefined
 
-    // Loop to handle reducing nResults by half until it runs successfully
-    while (retryCount < 5) { // Limit the number of retries to prevent infinite loops
+    while (queryOptions.nResults > 4) { // Limit the number of retries to prevent infinite loops
         try {
             // Execute the query with the assembled queryOptions
-            results = await collection.query(queryOptions);
-
-            if (results.documents[0].length === 0) {
+            if (queryOptions.nResults / 2 > 4) {
+                results = await collection.query(queryOptions);
+            } else {
                 delete queryOptions.whereDocument
+                queryOptions.nResults = limit || 100
                 results = await collection.query(queryOptions);
             }
 
@@ -108,7 +107,6 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
         } catch (error) {
             // If an error occurs, reduce nResults by half and retry
             queryOptions.nResults = Math.floor(queryOptions.nResults / 2);
-            retryCount++;
 
             // If nResults has become too small, throw the error
             if (queryOptions.nResults <= 1) {
