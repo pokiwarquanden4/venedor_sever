@@ -50,7 +50,11 @@ async function compareOptionsFunc(preData, message, storageOptions, storageIds, 
             const newRank = val.map(text => {
                 let highestSimilar = 0
                 options.forEach(option => {
-                    const similarity = stringSimilarity.compareTwoStrings(option, text);
+                    const similarity = stringSimilarity.compareTwoStrings(
+                        option.toLowerCase(),
+                        text.toLowerCase()
+                    );
+
                     if (similarity > highestSimilar) highestSimilar = similarity
                 })
 

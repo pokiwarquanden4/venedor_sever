@@ -1,19 +1,22 @@
 import getCollection from "./vectorDB/collection";
 import { queryVectorDB } from "./vectorDB/vectorDBController";
+import stringSimilarity from 'string-similarity'
 
 function extractOptions(str) {
     const match = str.match(/Options:\s*(.*?)\s*categoryList:/);
     return match ? match[1].trim() : null;
 }
 
-const rankMatches = (data, words) => {
+const rankMatches = (data, text) => {
     const documents = data.documents[0]
 
     return documents
         .map(str => {
-            const lowerStr = str.toLowerCase();
-            const uniqueMatches = new Set(words.filter(word => new RegExp(word, 'u').test(lowerStr)));
-            return uniqueMatches.size;
+            const rank = stringSimilarity.compareTwoStrings(
+                str.toLowerCase(),
+                text.toLowerCase()
+            );
+            return rank;
         })
 };
 
@@ -132,7 +135,7 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
     const collection = await getCollection();
     const vectorData = await queryVectorDB(collection, searchs);
 
-    const ranking = rankMatches(vectorData.defaultData, searchs.text.toLowerCase().match(/\p{L}+/gu) || []);
+    const ranking = rankMatches(vectorData.defaultData, searchs.text);
     const sortedIds = vectorData.sortedIds
 
     const rerankData = vectorData.defaultData.ids[0]
