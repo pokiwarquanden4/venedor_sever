@@ -84,6 +84,7 @@ export const createProduct = async (req, res) => {
       const metadatas = {
         price: newProduct.price,
         saleOff: newProduct.saleOff,
+        discountedPrice: newProduct.price - (newProduct.price * newProduct.saleOff / 100),
         sold: newProduct.sold,
         rate: newProduct.rate,
       }
@@ -276,6 +277,7 @@ export const editProduct = async (req, res) => {
         price: obj.price,
         saleOff: obj.saleOff,
         sold: currentProduct.dataValues.sold,
+        discountedPrice: obj.price - (obj.price * obj.saleOff / 100),
         rate: currentProduct.dataValues.rate,
       }
       const ids = JSON.stringify(currentProduct.dataValues.id)
