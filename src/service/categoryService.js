@@ -20,99 +20,82 @@ const storage = getStorage();
 export const createProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      // const user = await db.User.findOne({
-      //   where: {
-      //     account: req.body.jwtAccount,
-      //   },
-      // });
+      const user = await db.User.findOne({
+        where: {
+          account: req.body.jwtAccount,
+        },
+      });
 
-      // //Add Img
-      // let nextID = ((await db.Storage.max("id")) || 0) + 1,
-      //   imgURL,
-      //   listImgURL = "";
-      // specificpics = ""
-      // for (let i = 0; i < req.files.length; i++) {
-      //   const storageRef = ref(
-      //     storage,
-      //     `Product/${user.account}/${nextID}/${i === 0 ? "main" : i <= Number(req.body.listImgLength) ? "all" : 'specificpics'}/${req.files[i].originalname
-      //     }`
-      //   );
-      //   const metadata = {
-      //     contentType: req.files[i].mimetype,
-      //   };
-      //   const snapshot = await uploadBytesResumable(
-      //     storageRef,
-      //     req.files[i].buffer,
-      //     metadata
-      //   );
-      //   const downloadURL = await getDownloadURL(snapshot.ref);
-      //   if (i === 0) {
-      //     imgURL = downloadURL;
-      //   } else if (i <= Number(req.body.listImgLength)) {
-      //     listImgURL += `___${downloadURL}`;
-      //   } else {
-      //     specificpics += `___${downloadURL}`;
-      //   }
-      // }
-      // listImgURL = listImgURL.slice(3)
-      // specificpics = specificpics.slice(3)
+      // Create Storage
+      const newProduct = {
+        ...req.body,
+        categoryList: req.body.categoryList.split(',').join('/'),
+        id: nextID,
+        sellerId: user.id,
+        shipping: 0,
+        rate: 0,
+        sold: 0,
+        imgURL: req.body.mainImgUrl,
+        listImgURL: req.body.listImgUrl.join('___'),
+        disable: false,
+      };
+      await db.Storage.create(newProduct);
 
-      // const newProduct = {
-      //   ...req.body,
-      //   categoryList: '/' + req.body.categoryList.split(',').join('/') + '/',
-      //   id: nextID,
-      //   sellerId: user.id,
-      //   shipping: 0,
-      //   rate: 0,
-      //   sold: 0,
-      //   imgURL: imgURL,
-      //   listImgURL: listImgURL,
-      //   disable: false,
-      // };
+      //Add to vectorDB
+      const collection = await getCollection()
+      let docs = `${newProduct.productName} `
+      if (req.body.specifics) {
+        docs += `Options: `
+        req.body.specifics.forEach((item) => {
+          docs += `${item.specificName}(${item.specific.join(', ')}) `
+        })
+      }
+      docs += 'categoryList: '
+      docs += req.body.categoryList
+        .split(',')
+        .map(num => `c${num}`)
+        .join('/');
 
-      // //Add to vectorDB
-      // const collection = await getCollection()
-      // let docs = `${newProduct.productName} `
-      // if (JSON.parse(req.body.specifics)) {
-      //   docs += `Options: `
-      //   JSON.parse(req.body.specifics).forEach((item) => {
-      //     docs += `${item.specificName}(${item.specific.join(', ')}) `
-      //   })
-      // }
-      // docs += 'categoryList: '
-      // docs += req.body.categoryList
-      //   .split(',')
-      //   .map(num => `c${num}`)
-      //   .join('/');
+      const metadatas = {
+        price: newProduct.price,
+        saleOff: newProduct.saleOff,
+        discountedPrice: newProduct.price - (newProduct.price * newProduct.saleOff / 100),
+        sold: newProduct.sold,
+        rate: newProduct.rate,
+      }
+      const ids = JSON.stringify(newProduct.id)
+      await addDVectorDB(collection, {
+        metadatas: [metadatas],
+        ids: [ids],
+        documents: [docs]
+      })
 
-      // const metadatas = {
-      //   price: newProduct.price,
-      //   saleOff: newProduct.saleOff,
-      //   discountedPrice: newProduct.price - (newProduct.price * newProduct.saleOff / 100),
-      //   sold: newProduct.sold,
-      //   rate: newProduct.rate,
-      // }
-      // const ids = JSON.stringify(newProduct.id)
-      // await addDVectorDB(collection, {
-      //   metadatas: [metadatas],
-      //   ids: [ids],
-      //   documents: [docs]
-      // })
+      // Create Specifics
+      const specificData = req.body.specifics.map((data) => ({
+        specificName: data.specificName,
+        storageId: newProduct.id,
+        specific: data.specific.join("___"),
+      }));
+      await db.StorageSpecific.bulkCreate(specificData);
 
-      // // Create Storage and get storageId
-      // await db.Storage.create(newProduct);
+      //Create specific pics
+      const specificPicsData = req.body.specificPics.map((data) => {
+        const [option1, option2] = Object.values(data.combination)
+        return {
+          option1: option1,
+          option2: option2,
+          storageId: newProduct.id,
+          price: data.price,
+          number: data.number,
+          saleOff: data.saleOff,
+          imgURL: data.img[0],
+          listImgURL: data.img.join('___'),
+        }
+      })
+      db.StorageSpecificPics.bulkCreate(specificPicsData)
 
-      // // Create Specifics using the new storageId
-      // const formattedData = JSON.parse(req.body.specifics).map((data) => ({
-      //   specificName: data.specificName,
-      //   storageId: newProduct.id,
-      //   specific: data.specific.join("___"),
-      // }));
-
-      // await db.StorageSpecific.bulkCreate(formattedData);
-
-      // const response = responseWithJWT(req, newProduct, user);
-      // res.status(200).json(response);
+      const response = responseWithJWT(req, newProduct, user);
+      res.status(200).json(response);
     }
   } catch (err) {
     res.status(500).json(err);
