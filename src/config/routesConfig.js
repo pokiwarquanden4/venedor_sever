@@ -174,8 +174,8 @@ export const routesConfig = {
       jwt: true,
       role: "Seller",
     },
-    getAllProducts: {
-      name: "/getAllProducts",
+    getSellerProducts: {
+      name: "/getSellerProducts",
       jwt: true,
       role: "Seller",
     },

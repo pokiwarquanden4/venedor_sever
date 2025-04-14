@@ -1,7 +1,7 @@
 import {
   createProduct,
   editProduct,
-  getAllProducts,
+  getSellerProducts,
   searchProduct,
   searchProductById,
   searchCategoryProduct,
@@ -20,7 +20,7 @@ export const createProductController = async (req, res) => {
 };
 
 export const getAllProductController = async (req, res) => {
-  return await getAllProducts(req, res);
+  return await getSellerProducts(req, res);
 };
 
 export const editProductController = async (req, res) => {

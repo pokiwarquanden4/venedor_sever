@@ -33,7 +33,7 @@ sellerRouters.post(
 );
 
 sellerRouters.get(
-  routesConfig.sellers.getAllProducts.name,
+  routesConfig.sellers.getSellerProducts.name,
   jwtMiddlewareController,
   getAllProductController
 );

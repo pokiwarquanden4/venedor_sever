@@ -102,38 +102,54 @@ export const createProduct = async (req, res) => {
   }
 };
 
-export const getAllProducts = async (req, res) => {
+export const getSellerProducts = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 10;
+      const offset = (page - 1) * limit;
+
+      // Get the user
       const user = await db.User.findOne({
-        include: [
-          {
-            model: db.Storage,
-            include: [
-              {
-                model: db.StorageSpecific, // Lấy StorageSpecific từ Storage
-                required: false,
-              },
-            ],
-            required: false, // Nếu Storage có thể không tồn tại
-          },
-        ],
         where: {
           account: req.body.jwtAccount,
         },
       });
 
-      const obj = [];
-      for (let i = 0; i < user.dataValues.Storages.length; i++) {
-        obj.push(user.dataValues.Storages[i].dataValues);
-      }
-      const response = responseWithJWT(req, obj, user);
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      // Get total count of storages for this user
+      const total = await db.Storage.count({
+        where: { sellerId: user.id },
+      });
+
+      const totalPages = Math.ceil(total / limit);
+
+      // Get paginated storages
+      const storages = await db.Storage.findAll({
+        where: { sellerId: user.id },
+        limit,
+        offset,
+        include: [
+          {
+            model: db.StorageSpecific,
+            required: false,
+          },
+        ],
+      });
+
+      const response = responseWithJWT(req, {
+        storages: storages,
+        totalPages: totalPages
+      }, user);
+
       res.status(200).json(response);
     }
   } catch (err) {
     res.status(500).json(err);
   }
 };
+
 
 export const editProduct = async (req, res) => {
   try {
