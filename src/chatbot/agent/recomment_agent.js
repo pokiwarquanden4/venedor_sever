@@ -4,9 +4,9 @@ import { z } from "zod";
 
 const categories = [
     { id: 8322, name: "Nhà Sách Tiki (Sách các thể loại)" },
-    { id: 1883, name: "Nhà Cửa - Đời Sống (Nội thất - Trang trí nhà tắm nhà vệ sinh nhà bếp, Vệ sinh - Tẩy rửa,  Tủ đồ - Lưu trữ, Chăn ga gối nệm, Dụng cụ & Sửa chữa, An ninh - An toàn ngôi nhà, Thiết bị - Vật tư điện nước)" },
+    { id: 1883, name: "Nhà Cửa - Đời Sống (Nội thất, Trang trí - Phụ kiện nội thất, Bếp - Đồ dùng nhà bếp, Dọn dẹp - Vệ sinh, Phòng ngủ, Phòng tắm - Nhà vệ sinh, Giặt ủi - Cất trữ, Thiết bị điện gia dụng nhỏ, Đồ dùng cho thú cưng, Dụng cụ - Thiết bị sửa chữa, Làm vườn - Sân thượng)" },
     { id: 1789, name: "Điện Thoại - Máy Tính Bảng" },
-    { id: 2549, name: "Đồ Chơi - Mẹ & Bé" },
+    { id: 2549, name: "Đồ Chơi - Mẹ & Bé (Sữa & Dinh dưỡng, Đồ chơi & Giáo dục, Đồ dùng chăm sóc bé, Mẹ bầu & Sau sinh, Người lớn tuổi & Người cần chăm sóc đặc biệt, Thời trang trẻ em, An toàn & Phụ kiện cho trẻ)" },
     { id: 1815, name: "Thiết Bị Số - Phụ Kiện Số (Tai Nghe, Cáp và Dây Sạc, Phụ Kiện Máy Tính và Điện Thoại, Loa và Thiết Bị Âm Thanh, Phụ Kiện Điện Thoại, Phụ Kiện Laptop)" },
     { id: 1882, name: "Điện Gia Dụng (Thiết bị nấu cơm, nấu cháo, hầm, hấp, Thiết bị chiên, nướng, nấu lẩu, Máy làm bánh, làm sữa, làm mì, làm kem, Thiết bị pha chế - Xay ép - Đánh trứng, Bếp & Thiết bị đun nấu, Thiết bị điện nhà bếp khác, Quạt và thiết bị làm mát, Thiết bị sưởi & tạo độ ẩm, Thiết bị vệ sinh và làm sạch nhà cửa,  Thiết bị lọc nước & nước nóng lạnh, Thiết bị ủi quần áo, giặt sấy, Máy cạo râu, cắt tóc, làm tóc, Thiết bị may vá)" },
     { id: 1520, name: "Làm Đẹp - Sức Khỏe (Chăm sóc cá nhân, Chăm sóc sức khỏe,  Dụng cụ làm đẹp làm sạch và chăm sóc cá nhân, Sản phẩm dinh dưỡng)" },
@@ -37,18 +37,20 @@ function generateSystemPrompt(previousChoices) {
         .join('\n');
 
     return `
-    Bạn đóng vai một chatbot gợi ý sản phẩm cho một trang thương mại điện tử. Dựa trên danh mục sản phẩm được cung cấp, bạn sẽ phân tích yêu cầu của người dùng và đề xuất danh mục phù hợp nhất.
-
-    Danh mục sản phẩm có sẵn (mã ID - mô tả):
+        Bạn đóng vai một chatbot gợi ý sản phẩm cho một trang thương mại điện tử. Dựa trên danh mục sản phẩm được cung cấp, bạn sẽ phân tích yêu cầu của người dùng và đề xuất danh mục phù hợp nhất.
     
-    ${formatted}
+        Danh mục sản phẩm có sẵn (mã ID - mô tả):
+        
+        ${formatted}
+        
+        **Lưu ý quan trọng**: Bạn chỉ được chọn **duy nhất một** mã danh mục từ danh sách trên. **Không được tự tạo hoặc chọn ID không có trong danh sách**.
     
-    Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
-    {
-      "decision": "<mã danh mục>"
-      "message": ""
-    }
-        `;
+        Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng, chỉ cần trả về kết quả như dưới, không cần giải thích gì thêm:
+        {
+          "decision": "<mã danh mục>"
+          "message": ""
+        }
+    `;
 }
 
 const RecommentFormat = z.object({
