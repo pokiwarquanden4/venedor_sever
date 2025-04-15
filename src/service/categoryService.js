@@ -529,11 +529,12 @@ export const getDailyDealsProduct = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
 export const getLatestProduct = async (req, res) => {
   try {
+    // Step 1: Fetch a larger set of products (e.g., 1000 random products)
     const products = await db.Storage.findAll({
-      order: [["createdAt", "DESC"]],
-      limit: 8,
+      limit: 1000, // Fetch a larger set of products (adjust as needed)
       include: [
         {
           model: db.StorageSpecific,
@@ -541,17 +542,26 @@ export const getLatestProduct = async (req, res) => {
       ],
     });
 
-    const response = responseWithJWT(req, products);
+    // Step 2: Sort the random products by 'createdAt' in descending order
+    const sortedProducts = products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    // Step 3: Select the top 8 products after sorting
+    const topProducts = sortedProducts.slice(0, 8);
+
+    // Step 4: Return the response with the top products
+    const response = responseWithJWT(req, topProducts);
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json(err);
   }
 };
+
+
 export const getBestSellerProduct = async (req, res) => {
   try {
+    // Step 1: Fetch a larger set of products (e.g., 1000 random products)
     const products = await db.Storage.findAll({
-      order: [["sold", "DESC"]],
-      limit: 8,
+      limit: 1000, // Fetch a larger set of products (adjust as needed)
       include: [
         {
           model: db.StorageSpecific,
@@ -559,25 +569,34 @@ export const getBestSellerProduct = async (req, res) => {
       ],
     });
 
-    const response = responseWithJWT(req, products);
+    // Step 2: Sort the random products by 'sold' in descending order
+    const sortedProducts = products.sort((a, b) => b.sold - a.sold);
+
+    // Step 3: Select the top 8 products after sorting
+    const topProducts = sortedProducts.slice(0, 8);
+
+    // Step 4: Return the response with the top products
+    const response = responseWithJWT(req, topProducts);
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json(err);
   }
 };
+
 export const getFeatureProduct = async (req, res) => {
   try {
     const products = await db.Storage.findAll({
-      order: [["rate", "DESC"]],
-      limit: 8,
+      limit: 1000,
       include: [
         {
           model: db.StorageSpecific,
         },
       ],
     });
+    const sortedProducts = products.sort((a, b) => b.rate - a.rate);
+    const topProducts = sortedProducts.slice(0, 8);
 
-    const response = responseWithJWT(req, products);
+    const response = responseWithJWT(req, topProducts);
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json(err);
