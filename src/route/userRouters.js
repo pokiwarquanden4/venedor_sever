@@ -22,6 +22,7 @@ import {
   purchaseController,
   wishListController,
   sendCreateAccountOTPController,
+  getUserDataController,
 } from "../controller/controllerUser";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
@@ -63,6 +64,11 @@ userRouter.post(
   routesConfig.users.editAddress.name,
   jwtMiddlewareController,
   editAddressController
+);
+userRouter.get(
+  routesConfig.users.getUserData.name,
+  jwtMiddlewareController,
+  getUserDataController
 );
 userRouter.get(
   routesConfig.users.getAddress.name,

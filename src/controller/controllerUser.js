@@ -20,6 +20,7 @@ import {
   editAccount,
   cancelOrder,
   sendCreateAccountOTP,
+  getUserData,
 } from "../service/userService";
 import { purchase } from "../service/purchaseService";
 
@@ -57,6 +58,9 @@ export const deleteWishListController = async (req, res) => {
 };
 export const deleteAllWishListController = async (req, res) => {
   return await deleteAllWishList(req, res);
+};
+export const getUserDataController = async (req, res) => {
+  return await getUserData(req, res);
 };
 
 export const wishListController = async (req, res) => {

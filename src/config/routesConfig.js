@@ -31,6 +31,11 @@ export const routesConfig = {
       jwt: true,
       role: "User",
     },
+    getUserData: {
+      name: "/getUserData",
+      jwt: true,
+      role: undefined,
+    },
     deleteAddress: {
       name: "/deleteAddress",
       jwt: true,

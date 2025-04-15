@@ -215,6 +215,27 @@ export const loginUser = async (req, res) => {
   }
 };
 
+export const getUserData = async (req, res) => {
+  try {
+    if (req.body.jwtAccount) {
+      const user = await db.User.findOne({
+        where: {
+          account: req.body.jwtAccount,
+        },
+        attributes: { exclude: ["password", "otp"] }
+      });
+
+      const response = responseWithJWT(req, user, user);
+      res.status(200).json(response);
+    } else {
+      res.status(200).json("not found");
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
 export const createAddress = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
