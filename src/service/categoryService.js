@@ -27,9 +27,10 @@ export const createProduct = async (req, res) => {
       });
 
       // Create Storage
+      let nextID = ((await db.Storage.max("id")) || 0) + 1
       const newProduct = {
         ...req.body,
-        categoryList: req.body.categoryList.split(',').join('/'),
+        categoryList: req.body.categoryList.join('/'),
         id: nextID,
         sellerId: user.id,
         shipping: 0,
@@ -52,7 +53,6 @@ export const createProduct = async (req, res) => {
       }
       docs += 'categoryList: '
       docs += req.body.categoryList
-        .split(',')
         .map(num => `c${num}`)
         .join('/');
 
@@ -272,7 +272,6 @@ export const editProduct = async (req, res) => {
       }
       docs += 'categoryList: '
       docs += req.body.categoryList
-        .split(',')
         .map(num => `c${num}`)
         .join('/');
 
