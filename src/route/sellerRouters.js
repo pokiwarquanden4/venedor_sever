@@ -2,6 +2,7 @@ import express from "express";
 import multer from "multer";
 import {
   createProductController,
+  deleteProductController,
   editOrderController,
   editProductController,
   getAllProductController,
@@ -20,14 +21,18 @@ const sellerRouters = express.Router();
 
 sellerRouters.post(
   routesConfig.sellers.createProduct.name,
-  upload.array("img"),
   jwtMiddlewareController,
   createProductController
 );
 
 sellerRouters.post(
+  routesConfig.sellers.deleteProduct.name,
+  jwtMiddlewareController,
+  deleteProductController
+);
+
+sellerRouters.post(
   routesConfig.sellers.editProduct.name,
-  upload.array("img"),
   jwtMiddlewareController,
   editProductController
 );

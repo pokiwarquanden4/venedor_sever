@@ -17,6 +17,35 @@ import getCollection from "../chatbot/vectorDB/collection";
 initializeApp(firebaseConfig);
 const storage = getStorage();
 
+export const deleteProduct = async (req, res) => {
+  try {
+    if (req.body.jwtAccount) {
+      const user = await db.User.findOne({
+        where: {
+          account: req.body.jwtAccount,
+        },
+      });
+
+      const deleted = await Storage.findOne({
+        where: {
+          id: req.body.id,
+          sellerId: user.sellerId
+        },
+      });
+
+      if (deleted) {
+        const response = responseWithJWT(req, 'Success', user);
+        res.status(200).json(response);
+      } else {
+        const response = responseWithJWT(req, 'Product not found', user);
+        res.status(200).json(response);
+      }
+    }
+  } catch (error) {
+    res.status(500).json(err);
+  }
+};
+
 export const createProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
