@@ -11,7 +11,7 @@ import { firebaseConfig } from "../config/fireBase";
 import { responseWithJWT } from "./jwt/jwtService";
 import { Op, where } from "sequelize";
 import sequelize from "sequelize";
-import { addDVectorDB, queryVectorDB, updateDVectorDB } from "../chatbot/vectorDB/vectorDBController";
+import { addDVectorDB, queryVectorDB, updateVectorDB } from "../chatbot/vectorDB/vectorDBController";
 import getCollection from "../chatbot/vectorDB/collection";
 
 initializeApp(firebaseConfig);
@@ -196,12 +196,10 @@ export const editProduct = async (req, res) => {
         },
       });
 
-      // Create Storage
-      let nextID = ((await db.Storage.max("id")) || 0) + 1
+      // Update Storage
       const newProduct = {
         ...req.body,
         categoryList: req.body.categoryList.join('/'),
-        id: nextID,
         sellerId: user.id,
         shipping: 0,
         rate: 0,
@@ -210,7 +208,20 @@ export const editProduct = async (req, res) => {
         listImgURL: req.body.listImgUrl.join('___'),
         disable: false,
       };
-      await db.Storage.create(newProduct);
+
+      await db.Storage.update(newProduct, {
+        where: {
+          id: req.body.id,
+          sellerId: user.id,
+        },
+      });
+
+      const updatedProduct = await db.Storage.findOne({
+        where: {
+          id: req.body.id,
+          sellerId: user.id,
+        },
+      });
 
       //Add to vectorDB
       const collection = await getCollection()
@@ -234,11 +245,14 @@ export const editProduct = async (req, res) => {
         rate: newProduct.rate,
       }
       const ids = JSON.stringify(newProduct.id)
-      await addDVectorDB(collection, {
+      await updateVectorDB(collection, {
         metadatas: [metadatas],
         ids: [ids],
         documents: [docs]
       })
+
+      await db.StorageSpecific.destroy({ where: { storageId: updatedProduct.id } });
+      await db.StorageSpecificPics.destroy({ where: { storageId: updatedProduct.id } });
 
       // Create Specifics
       const specificData = req.body.specifics.map((data) => ({

@@ -30,7 +30,7 @@ export const deleteDVectorDB = async (collection, ids, chunkSize = 200) => {
 };
 
 // Update documents in the vector database
-export const updateDVectorDB = async (collection, data, chunkSize = 200) => {
+export const updateVectorDB = async (collection, data, chunkSize = 200) => {
     function chunkArray(array, chunkSize) {
         const chunks = [];
         for (let i = 0; i < array.length; i += chunkSize) {
