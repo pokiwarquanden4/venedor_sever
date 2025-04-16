@@ -8,7 +8,7 @@ const jwtMiddleware = async (req, res, next) => {
       req.body.role = config.role;
       const user = await authenJWT(req, res);
 
-      if (user) {
+      if (user.success) {
         if (!user.refreshToken) {
           req.body = {
             ...req.body,
@@ -21,6 +21,8 @@ const jwtMiddleware = async (req, res, next) => {
             refreshToken: user.refreshToken,
           };
         }
+      } else {
+        return res.status(401).json(user.message)
       }
     }
     next();

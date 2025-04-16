@@ -80,7 +80,7 @@ export const createProduct = async (req, res) => {
 
       //Create specific pics
       const specificPicsData = req.body.specificPics.map((data) => {
-        const [option1, option2] = Object.values(data.combination)
+        const [option1, option2] = data.combination
         return {
           option1: option1,
           option2: option2,

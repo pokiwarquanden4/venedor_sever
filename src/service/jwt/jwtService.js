@@ -27,19 +27,28 @@ export const authenJWT = (req, res) => {
   const token = authHeader && authHeader.split(" ")[1];
   let users;
   if (token == null) {
-    return res.status(401).json("Token is null");
+    return {
+      success: false,
+      message: "Token is null",
+    };
   }
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
     if (err) {
       jwt.verify(token, process.env.REFRESH_TOKEN_SECRET, (err, user) => {
         if (err) {
-          res.status(401).json("Token is invalid");
+          return {
+            success: false,
+            message: "Token is invalid",
+          };
         } else {
           if (req.body.role === undefined || user.roleName === req.body.role) {
             users = user;
             users.refreshToken = true;
           } else {
-            res.status(401).json("You don't have permission");
+            return {
+              success: false,
+              message: "You don't have permission",
+            };
           }
         }
       });
@@ -47,21 +56,26 @@ export const authenJWT = (req, res) => {
       if (req.body.role === undefined || user.roleName === req.body.role) {
         users = user;
       } else {
-        res.status(401).json("You don't have permission");
+        return {
+          success: false,
+          message: "You don't have permission",
+        };
       }
     }
   });
+
+  users.success = true
   return users;
 };
 
 export const responseWithJWT = (req, obj, user) => {
   return req.body.refreshToken && user
     ? {
-        accessToken: createJWT(user),
-        refreshToken: createRefreshToken(user),
-        obj: obj,
-      }
+      accessToken: createJWT(user),
+      refreshToken: createRefreshToken(user),
+      obj: obj,
+    }
     : {
-        obj: obj,
-      };
+      obj: obj,
+    };
 };
