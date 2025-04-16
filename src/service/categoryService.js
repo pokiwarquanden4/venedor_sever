@@ -21,28 +21,45 @@ export const deleteProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
       const user = await db.User.findOne({
-        where: {
-          account: req.body.jwtAccount,
-        },
+        where: { account: req.body.jwtAccount },
       });
 
-      const deleted = await Storage.findOne({
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      const product = await db.Storage.findOne({
         where: {
           id: req.body.id,
-          sellerId: user.sellerId
+          sellerId: user.sellerId,
         },
       });
 
-      if (deleted) {
-        const response = responseWithJWT(req, 'Success', user);
-        res.status(200).json(response);
-      } else {
-        const response = responseWithJWT(req, 'Product not found', user);
-        res.status(200).json(response);
+      if (!product) {
+        const response = responseWithJWT(req, "Product not found", user);
+        return res.status(200).json(response);
       }
+
+      // Delete related records first
+      await db.StorageSpecific.destroy({ where: { storageId: product.id } });
+      await db.StorageSpecificPics.destroy({ where: { storageId: product.id } });
+      await db.Cart.destroy({ where: { productId: product.id } });
+      await db.Comment.destroy({ where: { productId: product.id } });
+      await db.WishList.destroy({ where: { productId: product.id } });
+      await db.History.destroy({ where: { productId: product.id } });
+      await db.DailyDeal.destroy({ where: { productId: product.id } });
+
+      // Delete the main product
+      await product.destroy();
+
+      const response = responseWithJWT(req, "Success", user);
+      return res.status(200).json(response);
+    } else {
+      return res.status(400).json({ message: "jwtAccount is required" });
     }
   } catch (error) {
-    res.status(500).json(err);
+    console.error("Delete product error:", error);
+    return res.status(500).json({ message: "Internal server error", error });
   }
 };
 
@@ -188,114 +205,29 @@ export const editProduct = async (req, res) => {
           account: req.body.jwtAccount,
         },
       });
-      let removeListImg = req.body.remove.split("___");
-      //Delete files in FireBase
-      for (let i = 0; i < removeListImg.length; i++) {
-        removeListImg[i] && deleteFile(removeListImg[i]);
-      }
 
-      //Current Product
-      const currentProduct = await db.Storage.findOne({
-        where: {
-          id: req.body.id,
-        },
-      });
-
-      //Add Img
-      let imgURL,
-        listImgURL = "";
-      for (let i = 0; i < req.files.length; i++) {
-        const storageRef = ref(
-          storage,
-          `Product/${user.account}/${currentProduct.dataValues.id}/${i === 0 && req.body.main === "true" ? "main" : "all"
-          }/${req.files[i].originalname}`
-        );
-        const metadata = {
-          contentType: req.files[i].mimetype,
-        };
-        const snapshot = await uploadBytesResumable(
-          storageRef,
-          req.files[i].buffer,
-          metadata
-        );
-        const downloadURL = await getDownloadURL(snapshot.ref);
-        if (i === 0 && req.body.main === "true") {
-          imgURL = downloadURL;
-        } else {
-          listImgURL += `___${downloadURL}`;
-        }
-      }
-      listImgURL = listImgURL.slice(3)
-
-      const obj = {
-        productName: req.body.productName,
-        price: req.body.price,
-        description: req.body.description,
-        number: req.body.number,
-        saleOff: req.body.saleOff,
-        categoryId: req.body.categoryId,
-        categoryList: '/' + req.body.categoryList.split(',').join('/') + '/',
-        brandName: req.body.brandName
+      // Create Storage
+      let nextID = ((await db.Storage.max("id")) || 0) + 1
+      const newProduct = {
+        ...req.body,
+        categoryList: req.body.categoryList.join('/'),
+        id: nextID,
+        sellerId: user.id,
+        shipping: 0,
+        rate: 0,
+        sold: 0,
+        imgURL: req.body.mainImgUrl,
+        listImgURL: req.body.listImgUrl.join('___'),
+        disable: false,
       };
-      if (imgURL) {
-        obj.imgURL = imgURL;
-        removeListImg = removeListImg.splice(1);
-      }
-      let newListImgURL = '___' + currentProduct.dataValues.listImgURL;
-      for (let i = 0; i < removeListImg.length; i++) {
-        newListImgURL = newListImgURL.replace(`___${removeListImg[i]}`, "");
-      }
-      newListImgURL += listImgURL;
-      obj.listImgURL = newListImgURL;
+      await db.Storage.create(newProduct);
 
-      await db.Storage.update(
-        {
-          ...obj,
-        },
-        {
-          where: {
-            sellerId: user.dataValues.id,
-            id: req.body.id,
-          },
-        }
-      );
-
-      //Update specific
-      const AllS = await db.StorageSpecific.findAll({
-        where: { storageId: req.body.id },
-      });
-
-      const newSpecifics = JSON.parse(req.body.specifics).map((data) => ({
-        id: data.id || null, // Có thể undefined nếu là mới
-        specificName: data.specificName,
-        storageId: req.body.id,
-        specific: data.specific.join("___"),
-      }));
-
-      const AllSIds = AllS.map((item) => item.id);
-      const newSpecificsIds = newSpecifics.map((item) => item.id).filter((id) => id !== null);
-
-      const toUpdate = newSpecifics.filter((item) => AllSIds.includes(item.id)); // Cập nhật
-      const toDelete = AllS.filter((item) => !newSpecificsIds.includes(item.id)); // Xóa
-      const toAdd = newSpecifics.filter((item) => item.id === null); // Thêm
-
-      for (const item of toUpdate) {
-        await db.StorageSpecific.update(
-          { specificName: item.specificName, specific: item.specific },
-          { where: { id: item.id } }
-        );
-      }
-      await db.StorageSpecific.destroy({
-        where: { id: toDelete.map((item) => item.id) },
-      });
-      await db.StorageSpecific.bulkCreate(toAdd);
-
-      //Update to vectorDB
+      //Add to vectorDB
       const collection = await getCollection()
-      let docs = `${obj.productName} `
-      if (JSON.parse(req.body.specifics)) {
+      let docs = `${newProduct.productName} `
+      if (req.body.specifics) {
         docs += `Options: `
-        JSON.parse(req.body.specifics).forEach((item) => {
+        req.body.specifics.forEach((item) => {
           docs += `${item.specificName}(${item.specific.join(', ')}) `
         })
       }
@@ -305,20 +237,44 @@ export const editProduct = async (req, res) => {
         .join('/');
 
       const metadatas = {
-        price: obj.price,
-        saleOff: obj.saleOff,
-        sold: currentProduct.dataValues.sold,
-        discountedPrice: obj.price - (obj.price * obj.saleOff / 100),
-        rate: currentProduct.dataValues.rate,
+        price: newProduct.price,
+        saleOff: newProduct.saleOff,
+        discountedPrice: newProduct.price - (newProduct.price * newProduct.saleOff / 100),
+        sold: newProduct.sold,
+        rate: newProduct.rate,
       }
-      const ids = JSON.stringify(currentProduct.dataValues.id)
-      await updateDVectorDB(collection, {
+      const ids = JSON.stringify(newProduct.id)
+      await addDVectorDB(collection, {
         metadatas: [metadatas],
         ids: [ids],
         documents: [docs]
       })
 
-      const response = responseWithJWT(req, "Success", user);
+      // Create Specifics
+      const specificData = req.body.specifics.map((data) => ({
+        specificName: data.specificName,
+        storageId: newProduct.id,
+        specific: data.specific.join("___"),
+      }));
+      await db.StorageSpecific.bulkCreate(specificData);
+
+      //Create specific pics
+      const specificPicsData = req.body.specificPics.map((data) => {
+        const [option1, option2] = data.combination
+        return {
+          option1: option1,
+          option2: option2,
+          storageId: newProduct.id,
+          price: data.price,
+          number: data.number,
+          saleOff: data.saleOff,
+          imgURL: data.img[0],
+          listImgURL: data.img.join('___'),
+        }
+      })
+      db.StorageSpecificPics.bulkCreate(specificPicsData)
+
+      const response = responseWithJWT(req, newProduct, user);
       res.status(200).json(response);
     }
   } catch (err) {
