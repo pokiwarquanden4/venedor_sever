@@ -201,12 +201,9 @@ export const editProduct = async (req, res) => {
         ...req.body,
         categoryList: req.body.categoryList.join('/'),
         sellerId: user.id,
-        shipping: 0,
-        rate: 0,
-        sold: 0,
+        id: req.body.id,
         imgURL: req.body.mainImgUrl,
         listImgURL: req.body.listImgUrl.join('___'),
-        disable: false,
       };
 
       await db.Storage.update(newProduct, {
@@ -223,7 +220,7 @@ export const editProduct = async (req, res) => {
         },
       });
 
-      //Add to vectorDB
+      //Update to vectorDB
       const collection = await getCollection()
       let docs = `${newProduct.productName} `
       if (req.body.specifics) {
