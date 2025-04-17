@@ -3,7 +3,7 @@ import { queryVectorDB } from "./vectorDB/vectorDBController";
 import stringSimilarity from 'string-similarity'
 
 function extractOptions(str) {
-    const match = str.match(/Options:\s*(.*?)\s*categoryList:/);
+    const match = str.match(/Options:\s*(.*)/);
     return match ? match[1].trim() : null;
 }
 
@@ -58,17 +58,14 @@ const rerank = (arr1, arr2, rate) => {
 };
 
 export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) {
-    const transformedIds = categoryIds.filter(id => recommentId !== id).map(id => {
-        return [`c${recommentId}`, `c${id}`]
-    });
     const searchs = {
         text: '',
-        whereDocuments: transformedIds.length === 0
-            ? { "$contains": `c${recommentId}` }
-            : transformedIds.length === 1
-                ? { "$and": transformedIds[0].map(id => ({ "$contains": id })) }
-                : { "$or": transformedIds.map(group => ({ "$and": group.map(id => ({ "$contains": id })) })) },
-        whereMetadatas: {},
+        whereMetadatas: {
+            '$and': [
+                { categoryId: { '$eq': recommentId } },
+                { categoryDetailId: { '$in': categoryIds.map(id => String(id)) } }
+            ]
+        }
     };
 
     dataList.forEach(async (data) => {
@@ -81,12 +78,10 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
             if (priceRangeString) {
                 const [min, max] = priceRangeString.split('-').map(Number);
 
-                searchs.whereMetadatas = {
-                    '$and': [
-                        { discountedPrice: { '$gte': min } },
-                        { discountedPrice: { '$lte': max } }
-                    ]
-                }
+                searchs.whereMetadatas.$and.push(
+                    { discountedPrice: { '$gte': min } },
+                    { discountedPrice: { '$lte': max } }
+                );
             }
         }
         if (data.startsWith("saleOff")) {
@@ -94,12 +89,10 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
             if (saleOffString) {
                 const [min, max] = saleOffString.split('-').map(Number);
 
-                searchs.whereMetadatas = {
-                    '$and': [
-                        { saleOff: { '$gte': min } },
-                        { saleOff: { '$lte': max } }
-                    ]
-                }
+                searchs.whereMetadatas.$and.push(
+                    { saleOff: { '$gte': min } },
+                    { saleOff: { '$lte': max } }
+                );
             }
         }
 
@@ -137,7 +130,6 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
 
     const ranking = rankMatches(vectorData.defaultData, searchs.text);
     const sortedIds = vectorData.sortedIds
-
     const rerankData = vectorData.defaultData.ids[0]
         .map((id, index) => ({ id, options: extractOptions(vectorData.defaultData.documents[0][index]), point: ranking[index] }))
         .sort((a, b) => b.point - a.point)

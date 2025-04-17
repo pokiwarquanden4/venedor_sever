@@ -3,7 +3,7 @@ import db from "./models/index.js";  // Ensure the file has a `.js` extension if
 import fs from "fs";
 import path from "path";
 // import _, { includes } from "lodash";
-import { addDVectorDB, deleteVectorDB, queryVectorDB } from "./chatbot/vectorDB/vectorDBController.js";
+import { addDVectorDB, deleteVectorDB, queryVectorDB, updateVectorDB } from "./chatbot/vectorDB/vectorDBController.js";
 import getCollection, { clearVectorDB } from "./chatbot/vectorDB/collection.js";
 import { faker } from '@faker-js/faker';
 import { Op } from "sequelize";
@@ -98,6 +98,9 @@ async function insertProducts() {
                     });
                 }
 
+                const arr = product.primary_category_path.split('/')
+                const categoryDetailId = arr[arr.length - 1]
+
                 results.push({
                     id: product.id,
                     sellerId: seller.id, // Ensure seller exists
@@ -112,7 +115,7 @@ async function insertProducts() {
                     saleOff: Math.round(((product.original_price - product.price) / product.original_price) * 100),
                     imgURL: product.thumbnail_url,
                     listImgURL: productDetail.images.map((img) => img.base_url).join("___"),
-                    categoryList: product.primary_category_path,
+                    categoryDetailId: categoryDetailId,
                     categoryId: categoryId,
                     disable: false
                 });
@@ -382,14 +385,13 @@ async function addProductToVectorDB() {
                     })
                 }
 
-                doc += 'categoryList: '
-                doc += product.primary_category_path
-                    .split('/')   // Split the string into an array
-                    .map(num => `c${num}`)  // Prefix each number with "c"
-                    .join('/');   // Join back into a string
+                const arr = product.primary_category_path.split('/')
+                const categoryDetailId = arr[arr.length - 1]
 
                 const saleOff = Math.round(((product.original_price - product.price) / product.original_price) * 100)
                 metadatas.push({
+                    categoryId: categoryId,
+                    categoryDetailId: categoryDetailId,
                     price: product.original_price,
                     saleOff: saleOff,
                     discountedPrice: product.original_price - (product.original_price * saleOff / 100),
@@ -402,7 +404,7 @@ async function addProductToVectorDB() {
         }
         const collection = await getCollection()
 
-        await addDVectorDB(collection, {
+        await updateVectorDB(collection, {
             metadatas,
             ids,
             documents

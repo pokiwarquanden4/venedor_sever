@@ -1,6 +1,7 @@
 import db from "../models/index";
 import { responseWithJWT } from "./jwt/jwtService";
 import nodemailer from "nodemailer";
+import { v4 as uuidv4 } from 'uuid';
 
 function generateRandomNumber() {
   var randomNumber = Math.floor(Math.random() * 9000) + 1000;
@@ -150,13 +151,18 @@ export const createUser = async (req, res) => {
       validOtp.dataValues.otp === req.body.otp &&
       new Date(validOtp.dataValues.expired) > currentTime
     ) {
+      // ✅ Add ID to req.body
+      req.body.id = uuidv4();
+
       const user = await db.User.create(req.body);
+
       if (user.dataValues.roleName === "User") {
         await db.Customer.create({
           userId: user.dataValues.id,
           money: 0,
         });
       }
+
       if (user.dataValues.roleName === "Seller") {
         await db.Seller.create({
           sellerId: user.dataValues.id,
@@ -164,6 +170,7 @@ export const createUser = async (req, res) => {
           permit: true,
         });
       }
+
       res.status(200).json("OK");
     } else {
       res.status(500).json("Otp is not valid");

@@ -11,7 +11,7 @@ import { firebaseConfig } from "../config/fireBase";
 import { responseWithJWT } from "./jwt/jwtService";
 import { Op, where } from "sequelize";
 import sequelize from "sequelize";
-import { addDVectorDB, queryVectorDB, updateVectorDB } from "../chatbot/vectorDB/vectorDBController";
+import { addDVectorDB, deleteDVectorDB, queryVectorDB, updateVectorDB } from "../chatbot/vectorDB/vectorDBController";
 import getCollection from "../chatbot/vectorDB/collection";
 
 initializeApp(firebaseConfig);
@@ -40,6 +40,10 @@ export const deleteProduct = async (req, res) => {
       await db.History.destroy({ where: { productId: product.id } });
       await db.DailyDeal.destroy({ where: { productId: product.id } });
 
+      //Delete vectorDB
+      const collection = await getCollection()
+      await deleteDVectorDB(collection, [product.id])
+
       // Delete the main product
       await product.destroy();
 
@@ -67,7 +71,6 @@ export const createProduct = async (req, res) => {
       let nextID = ((await db.Storage.max("id")) || 0) + 1
       const newProduct = {
         ...req.body,
-        categoryList: req.body.categoryList.join('/'),
         id: nextID,
         sellerId: user.id,
         shipping: 0,
@@ -88,12 +91,10 @@ export const createProduct = async (req, res) => {
           docs += `${item.specificName}(${item.specific.join(', ')}) `
         })
       }
-      docs += 'categoryList: '
-      docs += req.body.categoryList
-        .map(num => `c${num}`)
-        .join('/');
 
       const metadatas = {
+        categoryId: newProduct.categoryId,
+        categoryDetailId: newProduct.categoryDetailId,
         price: newProduct.price,
         saleOff: newProduct.saleOff,
         discountedPrice: newProduct.price - (newProduct.price * newProduct.saleOff / 100),
@@ -199,7 +200,6 @@ export const editProduct = async (req, res) => {
       // Update Storage
       const newProduct = {
         ...req.body,
-        categoryList: req.body.categoryList.join('/'),
         sellerId: user.id,
         id: req.body.id,
         imgURL: req.body.mainImgUrl,
@@ -229,12 +229,10 @@ export const editProduct = async (req, res) => {
           docs += `${item.specificName}(${item.specific.join(', ')}) `
         })
       }
-      docs += 'categoryList: '
-      docs += req.body.categoryList
-        .map(num => `c${num}`)
-        .join('/');
 
       const metadatas = {
+        categoryId: newProduct.categoryId,
+        categoryDetailId: newProduct.categoryDetailId,
         price: newProduct.price,
         saleOff: newProduct.saleOff,
         discountedPrice: newProduct.price - (newProduct.price * newProduct.saleOff / 100),

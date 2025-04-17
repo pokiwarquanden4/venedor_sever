@@ -60,11 +60,6 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
         nResults: limit || 100,  // Use provided limit or default to 1000
     };
 
-    // Add whereDocuments if it contains any filters
-    if (Object.keys(searchs.whereDocuments).length) {
-        queryOptions.whereDocument = searchs.whereDocuments;
-    }
-
     // Add whereMetadatas if it contains any filters
     if (Object.keys(searchs.whereMetadatas).length) {
         queryOptions.where = searchs.whereMetadatas;

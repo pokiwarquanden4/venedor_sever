@@ -64,8 +64,8 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.STRING,
         allowNull: false,
       },
-      categoryList: {
-        type: DataTypes.STRING,
+      categoryDetailId: {
+        type: DataTypes.INTEGER,
       },
       listImgURL: {
         type: DataTypes.TEXT,
