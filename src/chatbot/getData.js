@@ -7,19 +7,6 @@ function extractOptions(str) {
     return match ? match[1].trim() : null;
 }
 
-const rankMatches = (data, text) => {
-    const documents = data.documents[0]
-
-    return documents
-        .map(str => {
-            const rank = stringSimilarity.compareTwoStrings(
-                str.toLowerCase(),
-                text.toLowerCase()
-            );
-            return rank;
-        })
-};
-
 const rerank = (arr1, arr2, rate) => {
     // Step 1: Assign points to arr1 and arr2 based on their positions and the provided rate
     const arr1Point = arr1.map((item, index) => ({
@@ -128,23 +115,20 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
     const collection = await getCollection();
     const vectorData = await queryVectorDB(collection, searchs);
 
-    const ranking = rankMatches(vectorData.defaultData, searchs.text);
     const sortedIds = vectorData.sortedIds
-    const rerankData = vectorData.defaultData.ids[0]
-        .map((id, index) => ({ id, options: extractOptions(vectorData.defaultData.documents[0][index]), point: ranking[index] }))
-        .sort((a, b) => b.point - a.point)
-        .map(item => {
-            return {
-                id: item.id,
-                options: item.options
-            }
-        });
+    const productData = vectorData.defaultData.ids[0]
+        .map((id, index) => ({
+            id,
+            options: extractOptions(vectorData.defaultData.documents[0][index])
+        }))
+
+
     let final = []
 
     if (searchs._sortHint) {
-        final = rerank(rerankData, sortedIds, [0.7, 0.3])
+        final = rerank(productData, sortedIds, [0.7, 0.3])
     } else {
-        final = rerankData
+        final = productData
     }
     return final;
 }
