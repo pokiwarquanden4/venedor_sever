@@ -70,14 +70,7 @@ export const queryVectorDB = async (collection, searchs, limit = undefined) => {
 
     while (queryOptions.nResults > 4) { // Limit the number of retries to prevent infinite loops
         try {
-            // Execute the query with the assembled queryOptions
-            if (queryOptions.nResults / 2 > 4) {
-                results = await collection.query(queryOptions);
-            } else {
-                delete queryOptions.whereDocument
-                queryOptions.nResults = limit || 100
-                results = await collection.query(queryOptions);
-            }
+            results = await collection.query(queryOptions);
 
             // Check if _sortHint is provided and determine sorting field and order
             const { field, order } = searchs._sortHint || { field: null, order: null };
