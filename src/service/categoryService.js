@@ -378,7 +378,7 @@ const deleteFile = (url) => {
 export const getOrder = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const { page = 1, limit = 10, productId } = req.query; // Default: page=1, limit=10
+      const { page = 1, limit = 10, productId = 0 } = req.query; // Default: page=1, limit=10
       const offset = (page - 1) * limit;
 
       const user = await db.User.findOne({
@@ -392,9 +392,9 @@ export const getOrder = async (req, res) => {
       }
 
       // If productId is undefined, get all storage IDs
-      let selectedProductIds = productId != 0
-        ? [productId]
-        : user.dataValues.Storages.map((storage) => storage.id);
+      let selectedProductIds = productId === 0
+        ? user.dataValues.Storages.map((storage) => storage.id)
+        : [productId]
 
       // Count total histories for pagination
       const totalHistories = await db.History.count({
