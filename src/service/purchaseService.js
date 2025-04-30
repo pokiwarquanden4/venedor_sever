@@ -56,47 +56,68 @@ export const purchase = async (req, res) => {
         });
 
         if (product.number - item.quantity >= 0) {
-          await db.Storage.update(
-            {
-              number: product.number - item.quantity,
-            },
-            {
-              where: {
-                id: item.productId,
-              },
-            }
-          );
-
-          await db.History.create({
-            userId: user.dataValues.id,
-            specific: item.specific,
-            addressId: req.body.addressId,
-            productId: item.productId,
-            number: item.quantity,
-            paid:
-              item.quantity *
-              (product.dataValues.price -
-                product.dataValues.price * (product.dataValues.saleOff / 100)),
-            status: 0,
-            cancel: false,
-          });
-
-          await db.Cart.destroy({
+          const specificPic = await db.StorageSpecificPics.findOne({
             where: {
-              id: item.id,
+              storageId: item.productId,
             },
           });
 
-          await mailing(
-            "Thank you for buying",
-            `Product Name: ${product.productName} \nQuantity: ${item.quantity
-            } \nPaid: ${item.quantity *
-            (product.dataValues.price -
-              product.dataValues.price * (product.dataValues.saleOff / 100))
-            }$`,
-            user.dataValues.email,
-            product.dataValues.imgURL
-          );
+          if (specificPic && specificPic.number - item.quantity >= 0) {
+            await db.Storage.update(
+              {
+                number: product.number - item.quantity,
+              },
+              {
+                where: {
+                  id: item.productId,
+                },
+              }
+            );
+
+            await db.StorageSpecificPics.update(
+              {
+                number: db.sequelize.literal(`number - ${item.quantity}`),
+              },
+              {
+                where: {
+                  storageId: item.productId,
+                },
+              }
+            );
+
+            await db.History.create({
+              userId: user.dataValues.id,
+              specific: item.specific,
+              addressId: req.body.addressId,
+              productId: item.productId,
+              number: item.quantity,
+              paid:
+                item.quantity *
+                (product.dataValues.price -
+                  product.dataValues.price * (product.dataValues.saleOff / 100)),
+              status: 0,
+              cancel: false,
+            });
+
+            await db.Cart.destroy({
+              where: {
+                id: item.id,
+              },
+            });
+
+            await mailing(
+              "Thank you for buying",
+              `Product Name: ${product.productName} \nQuantity: ${item.quantity
+              } \nPaid: ${item.quantity *
+              (product.dataValues.price -
+                product.dataValues.price * (product.dataValues.saleOff / 100))
+              }$`,
+              user.dataValues.email,
+              product.dataValues.imgURL
+            );
+          } else {
+            throw new Error("Not enough quantity in StorageSpecificPics.");
+          }
         }
       });
 

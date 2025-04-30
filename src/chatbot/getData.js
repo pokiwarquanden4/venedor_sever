@@ -44,9 +44,9 @@ const rerank = (arr1, arr2, rate) => {
     });
 };
 
-export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) {
+export async function getProductIdsVectorDB(dataList, recommentId, categoryIds, message) {
     const searchs = {
-        text: '',
+        text: message,
         whereMetadatas: {
             '$and': [
                 { categoryId: { '$eq': recommentId } },
@@ -56,10 +56,6 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds) 
     };
 
     dataList.forEach(async (data) => {
-        if (data.startsWith("description")) {
-            const productName = data.match(/description\(['"](.+?)['"]\)/)?.[1];
-            searchs.text = productName;
-        }
         if (data.startsWith("priceRange")) {
             const priceRangeString = data.match(/priceRange\((.+)\)/)?.[1];
             if (priceRangeString) {

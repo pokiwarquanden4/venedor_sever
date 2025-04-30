@@ -125,7 +125,7 @@ const agentController = async (preData, message) => {
     const generateResults = await generateSQL(preData, message)
     console.log(generateResults)
 
-    const data = await getProductIdsVectorDB(generateResults.decision, recommentId, categoryIds)
+    const data = await getProductIdsVectorDB(generateResults.decision, recommentId, categoryIds, message)
     const storageIds = data.slice(0, 4).map(item => Number(item.id));
     const storageOptions = data.slice(0, 4).map(item => item.options)
 

@@ -59,7 +59,7 @@ const RecommentFormat = z.object({
 });
 
 const recommentAgent = async (preData, message, previousChoices) => {
-    const systemPrompt = generateSystemPrompt(previousChoices)
+    const systemPrompt = generateSystemPrompt(previousChoices);
 
     const data = [
         {
@@ -70,12 +70,22 @@ const recommentAgent = async (preData, message, previousChoices) => {
             role: "user",
             content: message,
         }
-    ]
+    ];
 
-    const responseFormat = zodResponseFormat(RecommentFormat, "schemaName")
+    const responseFormat = zodResponseFormat(RecommentFormat, "schemaName");
 
-    const results = await callAI(data, responseFormat)
-    return results
-}
+    try {
+        const results = await Promise.race([
+            callAI(data, responseFormat),
+            new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout")), 5000)
+            )
+        ]);
+        return results;
+    } catch (error) {
+        console.error("Error or timeout occurred:", error.message);
+        return undefined;
+    }
+};
 
-export default recommentAgent
+export default recommentAgent;

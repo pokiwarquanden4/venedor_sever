@@ -10,18 +10,13 @@ function generateSystemPrompt() {
   - saleOff(percent-percent): Mức giảm giá, ví dụ: saleOff(0-10), saleOff(50-100)
   - mostBuy(boolean): Sản phẩm được mua nhiều, ví dụ: mostBuy(true)
   - topRate(boolean): Sản phẩm được đánh giá cao, ví dụ: topRate(true)
-  - description(string): Mô tả sản phẩm mong muốn hoặc tên hoặc loại sản phẩm họ muốn tìm, ví dụ: description("Túi xách màu vàng"), description("Máy tính")
 
   Quy tắc bắt buộc:
-  1. Chỉ được sử dụng đúng 5 loại tiêu chí đã liệt kê ở trên, không được tự tạo ra tiêu chí mới mỗi loại chỉ được xuất hiện nhiều nhất 1 lần.
-  2. Trường **description luôn luôn bắt buộc phải có trong mảng "decision".
-  3. Luôn bao quanh giá trị của description bằng **hai dấu nháy kép**.
-  4. Nếu người dùng nói một mức giá cụ thể như "200k", hãy hiểu đó là khoảng giá xung quanh 200k (ví dụ: 180000 - 220000).
-
+  1. Chỉ được sử dụng đúng 4 loại tiêu chí đã liệt kê ở trên, không được tự tạo ra tiêu chí mới mỗi loại chỉ được xuất hiện nhiều nhất 1 lần.
 
   Hãy phân tích và trả về kết quả đúng định dạng JSON sau (không cần giải thích gì thêm):
   {
-    "decision": [priceRange(Money-Money), saleOff(percent-percent), mostBuy(boolean), topRate(boolean), description(string)],
+    "decision": [priceRange(Money-Money), saleOff(percent-percent), mostBuy(boolean), topRate(boolean)],
     "message": "Đưa ra câu trả lời"
   }
 
@@ -30,26 +25,35 @@ function generateSystemPrompt() {
   Input: "Tìm cho mình vài đôi giày thể thao dưới 1 triệu, đang giảm giá mạnh"
   Output:
   {
-    "decision": [priceRange(0-1000000), saleOff(30-100), description("giày thể thao")],
+    "decision": [priceRange(0-1000000), saleOff(30-100)],
     "message": "Đây là những đôi giày thể thao dưới 1 triệu đang giảm giá mạnh"
   }
 
-  Input: "Túi xách màu đen được đánh giá cao"
+  Input: "Tìm cho mình đôi giày được đánh giá cao"
   Output:
   {
-    "decision": [topRate(true), description("túi xách màu đen")],
-    "message": "Dưới đây là các túi xách màu đen được đánh giá cao"
+    "decision": [topRate(true)],
+    "message": "Dưới đây là các đôi giày được đánh giá cao"
+  }
+
+  Input: "Tôi muốn mua quần lót"
+  Output:
+  {
+    "decision": [],
+    "message": "Dưới đây là danh sách các sản phẩm quần lót mà bạn có thể tham khảo"
   }
   """
   `;
 }
 
-const allowedTypes = ["priceRange", "saleOff", "mostBuy", "topRate", "description"];
+const allowedTypes = ["priceRange", "saleOff", "mostBuy", "topRate"];
 
 const RecommentClassificationFormat = z.object({
   decision: z.array(z.string()).refine((items) => {
     const seen = new Set();
-    let hasDescription = false;
+
+    // Nếu mảng rỗng, trả về true (hợp lệ)
+    if (items.length === 0) return true;
 
     for (const item of items) {
       const match = item.match(/^([a-zA-Z]+)\(/);
@@ -60,18 +64,17 @@ const RecommentClassificationFormat = z.object({
       if (seen.has(type)) return false;
 
       seen.add(type);
-      if (type === "description") hasDescription = true;
     }
 
-    return hasDescription;
+    return true; // Hợp lệ nếu không vi phạm các quy tắc
   }, {
-    message: "Mỗi loại tiêu chí chỉ được xuất hiện 1 lần và phải có description(\"...\")"
+    message: "Mỗi loại tiêu chí chỉ được xuất hiện 1 lần và phải hợp lệ"
   }),
   message: z.string()
 });
 
 const generateSQL = async (preData, message) => {
-  const systemPrompt = generateSystemPrompt()
+  const systemPrompt = generateSystemPrompt();
 
   const data = [
     {
@@ -82,12 +85,12 @@ const generateSQL = async (preData, message) => {
       role: "user",
       content: message,
     }
-  ]
+  ];
 
-  const responseFormat = zodResponseFormat(RecommentClassificationFormat, "schemaName")
+  const responseFormat = zodResponseFormat(RecommentClassificationFormat, "schemaName");
 
-  const results = await callAI(data, responseFormat)
-  return results
-}
+  const results = await callAI(data, responseFormat);
+  return results;
+};
 
-export default generateSQL
+export default generateSQL;
