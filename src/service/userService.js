@@ -624,7 +624,7 @@ export const getHistory = async (req, res) => {
         where: {
           id: listItemsID,
         },
-        attributes: ["id", "imgURL", "productName", "category"],
+        attributes: ["id", "imgURL", "productName", "categoryId"],
       });
 
       const obj = [];

@@ -208,7 +208,7 @@ async function addComments() {
             await db.User.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
         }
 
-        //Chunk Comment
+        //Chunk Customer
         var chunkSize = 100;
         var dataChunks = chunkArray(customerLists, chunkSize);
         for (var chunk of dataChunks) {

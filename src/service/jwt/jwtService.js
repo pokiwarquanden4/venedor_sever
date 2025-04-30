@@ -25,6 +25,7 @@ export const createRefreshToken = (data) => {
 export const authenJWT = (req, res) => {
   const authHeader = req.headers["authorization"];
   const token = authHeader && authHeader.split(" ")[1];
+  console.log(authHeader)
   let users;
   if (token == null) {
     return {

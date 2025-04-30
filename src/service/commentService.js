@@ -65,12 +65,16 @@ export const addComment = async (req, res) => {
             const userId = user.id
 
             // Kiểm tra dữ liệu đầu vào
-            if (!productId || !userId || !content) {
+
+            if (!productId || (!userId && userId !== 0) || !content) {
                 return res.status(400).json({ success: false, message: "Thiếu dữ liệu cần thiết" });
             }
 
+            // Tạo id mới
+            const newId = await db.Comment.max('id') + 1 || 1; // Lấy id lớn nhất hiện tại và tăng thêm 1, nếu không có thì bắt đầu từ 1
             // Tạo bình luận mới
             const newComment = await db.Comment.create({
+                id: newId, // Thêm id mới
                 productId,
                 userId,
                 content,
@@ -79,7 +83,14 @@ export const addComment = async (req, res) => {
             });
 
             const response = responseWithJWT(req, {
-                comment: newComment,
+                comment: {
+                    ...newComment.dataValues, // Bao gồm toàn bộ dữ liệu của bình luận
+                    User: {
+                        id: user.id,
+                        name: user.name,
+                        account: user.account, // Thêm thông tin người dùng
+                    },
+                },
             }, user);
             res.status(200).json(response);
         }
