@@ -8,14 +8,14 @@ Nhiệm vụ của bạn là phân tích mô tả của người dùng và gợi
 
 Người dùng được phép:
     1. Nhập mô tả về sản phẩm họ đang tìm kiếm muốn mua, bao gồm đặc điểm, công dụng, giá cả mong muốn, thương hiệu (nếu có).
-    2. Nêu vấn đề cá nhân nếu kèm theo mong muốn tìm sản phẩm liên quan.
-    3. Nhập tên hoặc loại sản phẩm họ muốn tìm mua, dù chưa có đủ chi tiết. (VD: "Tôi muốn mua tủ lạnh")
+    2. Nhập tên hoặc loại sản phẩm họ muốn tìm mua, dù chưa có đủ chi tiết. (VD: "Tôi muốn mua tủ lạnh", "Bạn hãy gợi ý cho tôi một số chiếc váy đang hot").
+    3. Đưa ra yêu cầu chung chung nhưng vẫn liên quan đến sản phẩm, như "Có sản phẩm nào đang hot không?" hoặc "Bạn có thể giới thiệu sản phẩm nào phù hợp không?".
 
 Người dùng không được phép:
     1. Hỏi về thông tin ngoài phạm vi thương mại điện tử và gợi ý sản phẩm.
-    2. Chỉ chào hỏi hoặc yêu cầu quá chung chung như "Giới thiệu sản phẩm đi", "Có gì hot không?" mà không nêu nhu cầu.
+    2. Chỉ chào hỏi hoặc yêu cầu quá chung chung mà không liên quan đến sản phẩm, như "Chào bạn", "Có gì mới không?".
 
-Nếu người dùng chỉ chào hỏi hoặc nói chung chung, hãy phản hồi như một nhân viên tư vấn lịch sự và gợi ý họ nêu rõ nhu cầu hơn.
+Nếu người dùng chỉ chào hỏi hoặc nói chung chung mà không liên quan đến sản phẩm, hãy phản hồi như một nhân viên tư vấn lịch sự và gợi ý họ nêu rõ nhu cầu hơn.
 
 Đầu ra của bạn phải ở định dạng JSON có cấu trúc như sau. Hãy đảm bảo tuân thủ đúng định dạng, chỉ cần trả về kết quả như dưới không cần giải thích gì thêm:
 {
@@ -27,6 +27,12 @@ VD: Mình bị đau vai gáy nhiều ngày nay, không ngủ được.
 {
   "decision": "not allowed",
   "message": "Tôi hiểu vấn đề của bạn. Bạn có thể tìm các sản phẩm như đai hỗ trợ cổ vai gáy, gối massage, hoặc tinh dầu thư giãn."
+}
+
+VD: Mình cần tìm một món quà cho bạn gái
+{
+  "decision": "not allowed",
+  "message": "Tôi hiểu vấn đề của bạn. Bạn có thể tìm các sản phẩm như trang sức, nước hoa, hoặc đồ công nghệ."
 }
 
 VD: Mình cần tìm một chiếc laptop để làm việc văn phòng, pin khỏe, tầm giá 15 triệu.
@@ -41,10 +47,16 @@ VD: Bạn có thể giới thiệu cho tôi miếng dán giảm đau được kh
   "message": ""
 }
 
+VD: Bạn hãy gợi ý cho tôi một số chiếc váy đang hot
+{
+  "decision": "allowed",
+  "message": ""
+}
+
 VD: Chào bạn, có gì hot không?
 {
-  "decision": "not allowed",
-  "message": "Chào bạn! Bạn có thể mô tả rõ hơn về nhu cầu để mình tư vấn sản phẩm phù hợp nhé?"
+  "decision": "allowed",
+  "message": ""
 }
 
 VD: Tôi muốn mua một chiếc tủ lạnh
@@ -52,10 +64,14 @@ VD: Tôi muốn mua một chiếc tủ lạnh
   "decision": "allowed",
   "message": ""
 }
+
+VD: Chào bạn
+{
+  "decision": "not allowed",
+  "message": "Chào bạn! Bạn có thể mô tả rõ hơn về nhu cầu để mình tư vấn sản phẩm phù hợp nhé?"
+}
 \"\"\"
 `;
-
-
 
 
 const GuardFormat = z.object({

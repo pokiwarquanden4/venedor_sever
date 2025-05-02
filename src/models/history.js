@@ -46,6 +46,10 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
+      feedbackId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+      },
     },
     {
       timestamps: true,
@@ -61,6 +65,9 @@ module.exports = (sequelize, DataTypes) => {
     });
     History.belongsTo(models.Address, {
       foreignKey: "addressId",
+    });
+    History.belongsTo(models.Comment, {
+      foreignKey: "feedbackId",
     });
   };
   return History;

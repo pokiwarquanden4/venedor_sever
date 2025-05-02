@@ -53,8 +53,12 @@ function generateSystemPrompt(previousChoices) {
     `;
 }
 
+const categoryIds = categories.map(c => c.id); // Lấy danh sách các id từ categories
+
 const RecommentFormat = z.object({
-    decision: z.number(),
+    decision: z.number().refine(id => categoryIds.includes(id), {
+        message: "decision phải là một trong những id hợp lệ trong danh sách categories",
+    }),
     message: z.string(),
 });
 

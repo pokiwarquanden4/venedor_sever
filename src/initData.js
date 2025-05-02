@@ -498,6 +498,7 @@ async function createHistory() {
                 status: 2,
                 addressId: addressData[Math.floor(Math.random() * addressData.length)].id,
                 paid: (storageData.price - (storageData.price * storageData.saleOff / 100)) * randomNumber,
+                feedbackId: comment.id,
                 specific: storageSpecificData.map(item => {
                     const specific = item.specific.split('___');
                     return specific[Math.floor(Math.random() * specific.length)];
@@ -567,8 +568,8 @@ async function run() {
         // await updateProductNumber()
         // await addComments();
         // await createAddresses()
-        // await createHistory()
-        await addProductToVectorDB();
+        await createHistory()
+        // await addProductToVectorDB();
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

@@ -61,7 +61,7 @@ export const addComment = async (req, res) => {
                 },
             });
 
-            const { productId, content, rate, parentId } = req.body;
+            const { productId, content, rate, parentId, historyId = undefined } = req.body;
             const userId = user.id
 
             // Kiểm tra dữ liệu đầu vào
@@ -81,6 +81,19 @@ export const addComment = async (req, res) => {
                 rate: rate || null, // Nếu không có đánh giá sao, để null
                 parentId: parentId || null, // Nếu không có parentId, là bình luận gốc
             });
+
+            // Cập nhật feedbackId của History
+            if (historyId !== undefined) {
+                await db.History.update(
+                    { feedbackId: newId }, // Gán feedbackId bằng id của bình luận mới
+                    {
+                        where: {
+                            id: historyId,
+                            userId: userId,
+                        },
+                    }
+                );
+            }
 
             const response = responseWithJWT(req, {
                 comment: {

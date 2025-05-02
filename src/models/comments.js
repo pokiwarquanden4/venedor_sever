@@ -44,6 +44,9 @@ module.exports = (sequelize, DataTypes) => {
             foreignKey: "parentId",
             as: "children",
         });
+        Comment.hasOne(models.History, {
+            foreignKey: "feedbackId",
+        });
         Comment.belongsTo(models.Comment, {
             foreignKey: "parentId",
             as: "parent",
