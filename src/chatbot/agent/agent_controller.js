@@ -74,7 +74,7 @@ async function compareOptionsFunc(preData, message, storageOptions, storageIds, 
     return results
 }
 
-const agentController = async (preData, message) => {
+export const agentChatbotController = async (preData, message) => {
     // Translation and combine history
     const translation = await translation_agent(preData, message)
     const translation_decision = translation.decision
@@ -152,5 +152,60 @@ const agentController = async (preData, message) => {
     }
 }
 
+export const agentSearchController = async (preData, message) => {
+    // Translation and combine history
+    const translation = await translation_agent(preData, message);
+    const translation_decision = translation.decision;
+    message = translation_decision;
+    console.log(message);
 
-export default agentController
+    // Filter by big category
+    let recommentId;
+    let categoryIds = [];
+    const previousChoices = [];
+    let attempt = 0;
+
+    while (true) {
+        if (attempt >= 1) {
+            return {
+                products: [],
+            };
+        }
+
+        const recomment = await recommentAgent(preData, message, previousChoices);
+        recommentId = recomment.decision;
+        console.log('recommentId: ' + recommentId);
+
+        const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId);
+        categoryIds = recommentByCategory.decision;
+        console.log('categoryId: ' + categoryIds);
+
+        if (categoryIds.length) {
+            break;
+        } else {
+            previousChoices.push(recommentId);
+            attempt++; // tăng số lần thử
+        }
+    }
+
+    const data = await getProductIdsVectorDB([], recommentId, categoryIds, message);
+    const storageIds = data.slice(0, 10).map(item => Number(item.id));
+
+    const sqlProducts = await db.Storage.findAll({
+        where: {
+            id: storageIds
+        },
+        include: [
+            {
+                model: db.StorageSpecific
+            },
+            {
+                model: db.StorageSpecificPics
+            }
+        ],
+    });
+
+    return {
+        products: sqlProducts,
+    };
+};

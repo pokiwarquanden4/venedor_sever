@@ -3,7 +3,7 @@ import { z } from "zod";
 import { zodResponseFormat } from "openai/helpers/zod";
 
 function generateSystemPrompt(option) {
-    return `
+  return `
 Bạn là một hệ thống có nhiệm vụ lựa chọn các đặc điểm và giá trị phù hợp từ danh sách options được cung cấp, dựa trên nội dung yêu cầu của người dùng.
 
 🔒 **QUY ĐỊNH NGHIÊM NGẶT:**
@@ -66,28 +66,28 @@ Hãy luôn đảm bảo kết quả tuân thủ đúng danh sách được cung 
 
 
 const GuardFormat = z.object({
-    decision: z.string(),
-    message: z.string(),
+  decision: z.string(),
+  message: z.string(),
 });
 
 const optionSelect_agent = async (preData, message, option) => {
-    const systemPrompt = generateSystemPrompt(option)
+  const systemPrompt = generateSystemPrompt(option)
 
-    const data = [
-        {
-            role: "assistant",
-            content: systemPrompt,
-        },
-        {
-            role: "user",
-            content: message,
-        }
-    ]
+  const data = [
+    {
+      role: "assistant",
+      content: systemPrompt,
+    },
+    {
+      role: "user",
+      content: message,
+    }
+  ]
 
-    const responseFormat = zodResponseFormat(GuardFormat, "schemaName")
+  const responseFormat = zodResponseFormat(GuardFormat, "schemaName")
 
-    const results = await callAI(data, responseFormat)
-    return results
+  const results = await callAI(data, responseFormat)
+  return results
 }
 
 export default optionSelect_agent

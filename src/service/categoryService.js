@@ -13,6 +13,7 @@ import { Op, where } from "sequelize";
 import sequelize from "sequelize";
 import { addDVectorDB, deleteDVectorDB, queryVectorDB, updateVectorDB } from "../chatbot/vectorDB/vectorDBController";
 import getCollection from "../chatbot/vectorDB/collection";
+import { agentSearchController } from "../chatbot/agent/agent_controller";
 
 initializeApp(firebaseConfig);
 const storage = getStorage();
@@ -284,29 +285,9 @@ export const editProduct = async (req, res) => {
 export const searchProduct = async (req, res) => {
   try {
     const data = req.query;
-    const collection = await getCollection()
-    const searchs = {
-      text: data.content,
-      whereDocuments: {},
-      whereMetadatas: {},
-      _sortHint: {},
-    }
-    const results = await queryVectorDB(collection, searchs, 10)
-    const products = await db.Storage.findAll({
-      where: {
-        id: {
-          [Op.in]: results.defaultData.ids[0].map(i => Number(i)), // Convert each string ID to a number
-        },
-      },
-      include: [
-        {
-          model: db.StorageSpecific,
-        },
-      ],
-      limit: 10,
-    });
+    const results = await agentSearchController([], data.content)
 
-    const response = responseWithJWT(req, products);
+    const response = responseWithJWT(req, results.products);
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json(err);
@@ -338,12 +319,47 @@ export const searchProductById = async (req, res) => {
 
 export const searchCategoryProduct = async (req, res) => {
   try {
-    const { categoryId, page = 1, limit = 10 } = req.query; // Mặc định page = 1, limit = 10
+    const { sortType, categoryId, page = 1, limit = 10 } = req.query; // Mặc định page = 1, limit = 10
     const offset = (page - 1) * limit;
 
     let whereCondition = {};
     if (categoryId && categoryId != 0) {
       whereCondition.categoryId = categoryId;
+    }
+
+    // Xử lý sortType
+    let order = [];
+    switch (sortType) {
+      case "Feature":
+        order = [["rate", "DESC"]]; // Sắp xếp theo đánh giá cao nhất
+        break;
+      case "Best Selling":
+        order = [["sold", "DESC"]]; // Sắp xếp theo số lượng bán nhiều nhất
+        break;
+      case "Alphabetically,A-Z":
+        order = [["productName", "ASC"]]; // Sắp xếp theo tên sản phẩm từ A-Z
+        break;
+      case "Alphabetically,Z-A":
+        order = [["productName", "DESC"]]; // Sắp xếp theo tên sản phẩm từ Z-A
+        break;
+      case "Price, low to high":
+        order = [
+          [sequelize.literal("price * (1 - (saleOff / 100))"), "ASC"] // Sắp xếp theo giá sau giảm dần
+        ];
+        break;
+      case "Price, high to low":
+        order = [
+          [sequelize.literal("price * (1 - (saleOff / 100))"), "DESC"] // Sắp xếp theo giá sau giảm tăng
+        ];
+        break;
+      case "Date, old to new":
+        order = [["createdAt", "ASC"]]; // Sắp xếp theo ngày tạo từ cũ đến mới
+        break;
+      case "Date, new to old":
+        order = [["createdAt", "DESC"]]; // Sắp xếp theo ngày tạo từ mới đến cũ
+        break;
+      default:
+        order = [["createdAt", "DESC"]]; // Mặc định sắp xếp theo ngày tạo từ mới đến cũ
     }
 
     const { count, rows: products } = await db.Storage.findAndCountAll({
@@ -353,9 +369,10 @@ export const searchCategoryProduct = async (req, res) => {
         },
       ],
       where: whereCondition,
-      distinct: true, // ✅ Ensures correct count
+      distinct: true, // ✅ Đảm bảo đếm chính xác
       limit: parseInt(limit),
       offset: parseInt(offset),
+      order, // Áp dụng sắp xếp
     });
 
     const data = {
@@ -391,26 +408,25 @@ export const getOrder = async (req, res) => {
         return res.status(404).json({ message: "User not found" });
       }
 
-      // If productId is undefined, get all storage IDs
-      let selectedProductIds = productId === 0
+      // If productId is 0, get all storage IDs
+      let selectedProductIds = productId == 0
         ? user.dataValues.Storages.map((storage) => storage.id)
-        : [productId]
+        : [productId];
 
-      // Count total histories for pagination
-      const totalHistories = await db.History.count({
-        where: { productId: selectedProductIds },
-      });
-
-      // Calculate total pages
-      const totalPages = Math.ceil(totalHistories / limit);
-
-      // Fetch paginated histories
-      const histories = await db.History.findAll({
+      const { count: totalHistories, rows: histories } = await db.History.findAndCountAll({
         where: { productId: selectedProductIds },
         limit: parseInt(limit, 10),
         offset: parseInt(offset, 10),
         order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: db.Address, // Bao gồm thông tin từ bảng Address
+          },
+        ],
       });
+
+      // Calculate total pages
+      const totalPages = Math.ceil(totalHistories / limit);
 
       // Create response
       const response = responseWithJWT(

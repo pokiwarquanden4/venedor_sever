@@ -1,7 +1,7 @@
-import agentController from "./agent/agent_controller";
+import { agentChatbotController } from "./agent/agent_controller"
 
 const askChatbot = async (preData, message) => {
-    const results = await agentController(preData, message)
+    const results = await agentChatbotController(preData, message)
     return results
 }
 
