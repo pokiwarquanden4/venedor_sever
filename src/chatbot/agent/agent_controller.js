@@ -106,10 +106,18 @@ export const agentChatbotController = async (preData, message) => {
         }
 
         const recomment = await recommentAgent(preData, message, previousChoices);
+        if (!recomment) return {
+            products: [],
+            message: "Xin lỗi chúng tôi không thể tìm thấy sản phẩm mà bạn mong muốn, điều này có thể do shop hiện đang không có nguồn hàng"
+        };
         recommentId = recomment.decision;
         console.log('recommentId: ' + recommentId);
 
         const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId);
+        if (!recommentByCategory) return {
+            products: [],
+            message: "Xin lỗi chúng tôi không thể tìm thấy sản phẩm mà bạn mong muốn, điều này có thể do shop hiện đang không có nguồn hàng"
+        };
         categoryIds = recommentByCategory.decision;
         console.log('categoryId: ' + categoryIds);
 
@@ -126,6 +134,10 @@ export const agentChatbotController = async (preData, message) => {
     console.log(generateResults)
 
     const data = await getProductIdsVectorDB(generateResults.decision, recommentId, categoryIds, message)
+    if (!data) return {
+        products: [],
+        message: "Xin lỗi chúng tôi không thể tìm thấy sản phẩm mà bạn mong muốn, điều này có thể do shop hiện đang không có nguồn hàng"
+    }
     const storageIds = data.slice(0, 4).map(item => Number(item.id));
     const storageOptions = data.slice(0, 4).map(item => item.options)
 
@@ -173,10 +185,12 @@ export const agentSearchController = async (preData, message) => {
         }
 
         const recomment = await recommentAgent(preData, message, previousChoices);
+        if (!recomment) return { products: [] };
         recommentId = recomment.decision;
         console.log('recommentId: ' + recommentId);
 
         const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId);
+        if (!recommentByCategory) return { products: [] };
         categoryIds = recommentByCategory.decision;
         console.log('categoryId: ' + categoryIds);
 
@@ -189,6 +203,7 @@ export const agentSearchController = async (preData, message) => {
     }
 
     const data = await getProductIdsVectorDB([], recommentId, categoryIds, message);
+    if (!data) return { products: [] };
     const storageIds = data.slice(0, 10).map(item => Number(item.id));
 
     const sqlProducts = await db.Storage.findAll({

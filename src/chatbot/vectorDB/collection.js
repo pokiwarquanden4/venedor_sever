@@ -4,13 +4,13 @@ const defaultEF = new DefaultEmbeddingFunction("multi-qa-mpnet-base-cos-v1");
 
 const getCollection = async () => {
     let collection = await client.getCollection({
-        name: "vectorDB",
+        name: "vendor",
         embeddingFunction: defaultEF,
     });
     if (!collection) {
         collection = await client.createCollection({
             embeddingFunction: defaultEF,
-            name: "vectorDB",
+            name: "vendor",
         });
     }
 

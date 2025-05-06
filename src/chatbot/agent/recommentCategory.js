@@ -21,16 +21,18 @@ function generateSystemPrompt(categoryList) {
 }
 
 const RecommentCategoryFormat = z.object({
-    decision: z.array(z.number()),
+    decision: z.array(z.number()).refine((ids) => ids.length > 0, {
+        message: "decision phải chứa ít nhất một mã danh mục hợp lệ.",
+    }),
     message: z.string(),
 });
 
 const recommentCategoryAgent = async (preData, message, recommentId) => {
     // Read the JSON file
-    let systemPrompt = ''
+    let systemPrompt = '';
     const rawData = fs.readFileSync(`src/data/list_menu.json`, 'utf-8');
     const listMenu = JSON.parse(rawData);
-    let categories = {}
+    let categories = {};
 
     for (const menu of listMenu) {
         const linkParts = menu.link.split("/");
@@ -43,12 +45,11 @@ const recommentCategoryAgent = async (preData, message, recommentId) => {
             categories = {
                 ...categories,
                 ...categoryList,
-
-            }
+            };
         }
     }
 
-    systemPrompt = generateSystemPrompt(categories)
+    systemPrompt = generateSystemPrompt(categories);
 
     const data = [
         {
@@ -58,13 +59,23 @@ const recommentCategoryAgent = async (preData, message, recommentId) => {
         {
             role: "user",
             content: message,
-        }
-    ]
+        },
+    ];
 
-    const responseFormat = zodResponseFormat(RecommentCategoryFormat, "schemaName")
-    const results = await callAI(data, responseFormat)
+    const responseFormat = zodResponseFormat(RecommentCategoryFormat, "schemaName");
 
-    return results
-}
+    try {
+        const results = await Promise.race([
+            callAI(data, responseFormat),
+            new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Timeout")), 5000)
+            )
+        ]);
+        return results;
+    } catch (error) {
+        console.error("Error or timeout occurred:", error.message);
+        return undefined;
+    }
+};
 
-export default recommentCategoryAgent
+export default recommentCategoryAgent;

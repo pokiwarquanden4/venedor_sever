@@ -53,6 +53,12 @@ module.exports = (sequelize, DataTypes) => {
         StorageSpecificPics.belongsTo(models.Storage, {
             foreignKey: "storageId",
         });
+        StorageSpecificPics.hasMany(models.Cart, {
+            foreignKey: "specificPicsId",
+        });
+        StorageSpecificPics.hasMany(models.History, {
+            foreignKey: "specificPicsId",
+        });
     };
 
     return StorageSpecificPics;

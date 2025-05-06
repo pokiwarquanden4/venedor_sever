@@ -2,7 +2,6 @@
 import db from "./models/index.js";  // Ensure the file has a `.js` extension if not using TypeScript
 import fs from "fs";
 import path from "path";
-// import _, { includes } from "lodash";
 import { addDVectorDB, deleteVectorDB, queryVectorDB, updateVectorDB } from "./chatbot/vectorDB/vectorDBController.js";
 import getCollection, { clearVectorDB } from "./chatbot/vectorDB/collection.js";
 import { faker } from '@faker-js/faker';
@@ -222,7 +221,7 @@ async function addComments() {
             await db.Comment.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
         }
 
-        console.log("✅ Comment inserted successfully!");
+        console.log("✅ addComments inserted successfully!");
     } catch (error) {
         console.error("❌ Error inserting categories:", error);
     }
@@ -271,7 +270,7 @@ async function insertDescriptionsDetail() {
             await db.StorageSpecific.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
         }
 
-        console.log("✅ Products inserted successfully!");
+        console.log("✅ insertDescriptionsDetail inserted successfully!");
     } catch (error) {
         console.error("❌ Error inserting products:", error);
     }
@@ -325,7 +324,7 @@ async function insertDescriptionsDetailImage() {
             await db.StorageSpecificPics.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
         }
 
-        console.log("✅ Products inserted successfully!");
+        console.log("✅ insertDescriptionsDetailImage inserted successfully!");
     } catch (error) {
         console.error("❌ Error inserting products:", error);
     }
@@ -347,7 +346,7 @@ async function updateProductNumber() {
             await product.update({ number: total || 0 }); // Nếu không có dữ liệu, set là 0
         }
 
-        console.log("✅ Products update successfully!");
+        console.log("✅ updateProductNumber update successfully!");
     } catch (error) {
         console.error("❌ Error updating products:", error);
     }
@@ -404,13 +403,13 @@ async function addProductToVectorDB() {
         }
         const collection = await getCollection()
 
-        await updateVectorDB(collection, {
+        await addDVectorDB(collection, {
             metadatas,
             ids,
             documents
         }, 200)
 
-        console.log("✅ Products inserted successfully!");
+        console.log("✅ addProductToVectorDB inserted successfully!");
     } catch (error) {
         console.error("❌ Error inserting products:", error);
     }
@@ -450,7 +449,7 @@ async function createAddresses() {
             await db.Address.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
         }
 
-        console.log("✅ Addresses inserted successfully!");
+        console.log("✅ createAddresses inserted successfully!");
     } catch (error) {
         console.error("❌ Error inserting addresses:", error);
     }
@@ -474,7 +473,7 @@ async function createHistory() {
                 },
                 {
                     model: db.Storage,
-                    include: [{ model: db.StorageSpecific }]
+                    include: [{ model: db.StorageSpecificPics }]
                 }
             ],
             limit,
@@ -488,7 +487,7 @@ async function createHistory() {
             const randomNumber = Math.floor(Math.random() * 3) + 1;
             const addressData = comment.User.Addresses;
             const storageData = comment.Storage;
-            const storageSpecificData = comment.Storage.StorageSpecifics;
+            const storageSpecificData = comment.Storage.StorageSpecificPics;
 
             return {
                 userId: comment.userId,
@@ -499,10 +498,9 @@ async function createHistory() {
                 addressId: addressData[Math.floor(Math.random() * addressData.length)].id,
                 paid: (storageData.price - (storageData.price * storageData.saleOff / 100)) * randomNumber,
                 feedbackId: comment.id,
-                specific: storageSpecificData.map(item => {
-                    const specific = item.specific.split('___');
-                    return specific[Math.floor(Math.random() * specific.length)];
-                }).join(' - '),
+                specificPicsId: storageSpecificData.length ? storageSpecificData[Math.floor(Math.random() * storageSpecificData.length)].id : null,
+                createdAt: comment.createdAt,
+                updatedAt: comment.updatedAt,
             };
         });
 
@@ -510,7 +508,7 @@ async function createHistory() {
         count += histories.length
         console.log(`✅ Inserted ${count} records...`);
     }
-    console.log("✅ All data inserted successfully!");
+    console.log("✅ createHistory  inserted successfully!");
 
 }
 
@@ -551,7 +549,7 @@ async function insertCategoryDetails() {
             await db.CategoryDetail.bulkCreate(chunk, { ignoreDuplicates: true, validate: true });
         }
 
-        console.log("✅ Products inserted successfully!");
+        console.log("✅ insertCategoryDetails inserted successfully!");
     } catch (error) {
         console.error("❌ Error inserting products:", error);
     }
@@ -568,8 +566,8 @@ async function run() {
         // await updateProductNumber()
         // await addComments();
         // await createAddresses()
-        await createHistory()
-        // await addProductToVectorDB();
+        // await createHistory()
+        await addProductToVectorDB();
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

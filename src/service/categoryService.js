@@ -11,7 +11,7 @@ import { firebaseConfig } from "../config/fireBase";
 import { responseWithJWT } from "./jwt/jwtService";
 import { Op, where } from "sequelize";
 import sequelize from "sequelize";
-import { addDVectorDB, deleteDVectorDB, queryVectorDB, updateVectorDB } from "../chatbot/vectorDB/vectorDBController";
+import { addDVectorDB, deleteDVectorDB, updateVectorDB } from "../chatbot/vectorDB/vectorDBController";
 import getCollection from "../chatbot/vectorDB/collection";
 import { agentSearchController } from "../chatbot/agent/agent_controller";
 
@@ -386,16 +386,10 @@ export const searchCategoryProduct = async (req, res) => {
   }
 };
 
-
-const deleteFile = (url) => {
-  const fileRef = ref(storage, url);
-  deleteObject(fileRef);
-};
-
 export const getOrder = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const { page = 1, limit = 10, productId = 0 } = req.query; // Default: page=1, limit=10
+      const { page = 1, limit = 10, productId = 0, selectedId = undefined } = req.query; // Default: page=1, limit=10
       const offset = (page - 1) * limit;
 
       const user = await db.User.findOne({
@@ -413,8 +407,14 @@ export const getOrder = async (req, res) => {
         ? user.dataValues.Storages.map((storage) => storage.id)
         : [productId];
 
+      // Build where condition
+      let whereCondition = { productId: selectedProductIds };
+      if (selectedId) {
+        whereCondition.id = selectedId; // Add selectedId to the where condition
+      }
+
       const { count: totalHistories, rows: histories } = await db.History.findAndCountAll({
-        where: { productId: selectedProductIds },
+        where: whereCondition,
         limit: parseInt(limit, 10),
         offset: parseInt(offset, 10),
         order: [["createdAt", "DESC"]],

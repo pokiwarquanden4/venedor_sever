@@ -214,7 +214,6 @@ export const loginUser = async (req, res) => {
       );
       res.status(200).json(responseData);
     } else {
-      console.log("out");
       res.status(500).json({ err: true });
     }
   } catch (err) {
@@ -490,6 +489,9 @@ export const getCartProduct = async (req, res) => {
           {
             model: db.Storage,
           },
+          {
+            model: db.StorageSpecificPics,
+          },
         ],
         where: {
           userId: user.dataValues.id,
@@ -499,8 +501,9 @@ export const getCartProduct = async (req, res) => {
       if (carts.length > 0) {
         carts.forEach((item) => {
           obj.push({
-            specific: item.dataValues.specific,
+            specific: item.dataValues.StorageSpecificPic,
             cartQuantity: item.dataValues.quantity,
+            cartId: item.dataValues.id,
             ...item.dataValues.Storage.dataValues,
           });
         });
@@ -525,6 +528,7 @@ export const deleteCartProduct = async (req, res) => {
 
       await db.Cart.destroy({
         where: {
+          id: req.body.cartId,
           productId: req.body.id,
           userId: user.dataValues.id,
         },
@@ -555,7 +559,7 @@ export const createCartProduct = async (req, res) => {
           where: {
             userId: user.dataValues.id,
             productId: req.body.id,
-            specific: req.body.specific
+            specificPicsId: req.body.specificPicsId
           },
         }
       );
@@ -564,7 +568,7 @@ export const createCartProduct = async (req, res) => {
           userId: user.dataValues.id,
           productId: req.body.id,
           quantity: req.body.quantity,
-          specific: req.body.specific
+          specificPicsId: req.body.specificPicsId
         });
       }
 
@@ -578,23 +582,67 @@ export const createCartProduct = async (req, res) => {
 export const editCartProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
+      let returnValue = 'OK'
+
       const user = await db.User.findOne({
         where: {
           account: req.body.jwtAccount,
         },
       });
-      await db.Cart.increment(
-        {
-          quantity: req.body.quantity,
-        },
-        {
+
+      if (req.body.specificId) {
+        const specific = await db.StorageSpecificPics.findOne({
           where: {
-            userId: user.dataValues.id,
-            productId: req.body.id,
+            id: req.body.specificId,
           },
+        });
+
+        if (specific.dataValues.number - req.body.quantity < 0) {
+          returnValue = {
+            err: true,
+            message: "Not enough product in stock",
+          }
+        } else {
+          await db.Cart.update(
+            {
+              quantity: req.body.quantity,
+            },
+            {
+              where: {
+                userId: user.dataValues.id,
+                productId: req.body.id,
+              },
+            }
+          );
         }
-      );
-      const response = responseWithJWT(req, "OK", user);
+      } else {
+        const product = await db.Storage.findOne({
+          where: {
+            id: req.body.id,
+          },
+        });
+
+        if (product.dataValues.number - req.body.quantity < 0) {
+          returnValue = {
+            err: true,
+            message: "Not enough product in stock",
+          }
+        } else {
+          await db.Cart.update(
+            {
+              quantity: req.body.quantity,
+            },
+            {
+              where: {
+                userId: user.dataValues.id,
+                productId: req.body.id,
+              },
+            }
+          );
+        }
+      }
+
+      const response = responseWithJWT(req, returnValue, user);
       res.status(200).json(response);
     }
   } catch (err) {
@@ -608,6 +656,11 @@ export const getHistory = async (req, res) => {
         include: [
           {
             model: db.History,
+            include: [
+              {
+                model: db.StorageSpecificPics,
+              },
+            ],
           },
         ],
         where: {
@@ -696,8 +749,6 @@ export const cancelOrder = async (req, res) => {
           userId: user.dataValues.id,
         },
       });
-
-      console.log(history);
 
       if (history) {
         if (req.body.number) {

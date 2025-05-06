@@ -17,8 +17,8 @@ module.exports = (sequelize, DataTypes) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      specific: {
-        type: DataTypes.STRING,
+      specificPicsId: {
+        type: DataTypes.INTEGER,
         allowNull: true,
       },
       quantity: {
@@ -40,6 +40,9 @@ module.exports = (sequelize, DataTypes) => {
     });
     Cart.belongsTo(models.Storage, {
       foreignKey: "productId",
+    });
+    Cart.belongsTo(models.StorageSpecificPics, {
+      foreignKey: "specificPicsId",
     });
   };
 

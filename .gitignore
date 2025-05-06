@@ -2,5 +2,5 @@ node_modules
 .env
 chroma.log
 src/data
-src/chatbot/vectorDB/5c08905e-e5a9-4958-8966-353974077ea1
+src/chatbot/vectorDB/18129783-56ef-484a-95e9-b693579007b5
 src/chatbot/vectorDB/chroma.sqlite3

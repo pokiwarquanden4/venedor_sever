@@ -9,8 +9,9 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true,
         type: DataTypes.INTEGER,
       },
-      specific: {
-        type: DataTypes.STRING,
+      specificPicsId: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
       },
       userId: {
         type: DataTypes.INTEGER,
@@ -68,6 +69,9 @@ module.exports = (sequelize, DataTypes) => {
     });
     History.belongsTo(models.Comment, {
       foreignKey: "feedbackId",
+    });
+    History.belongsTo(models.StorageSpecificPics, {
+      foreignKey: "specificPicsId",
     });
   };
   return History;

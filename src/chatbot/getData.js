@@ -111,6 +111,10 @@ export async function getProductIdsVectorDB(dataList, recommentId, categoryIds, 
     const collection = await getCollection();
     const vectorData = await queryVectorDB(collection, searchs);
 
+    if (!vectorData) {
+        return null; // Handle the case where no data is returned
+    }
+
     const sortedIds = vectorData.sortedIds
     const productData = vectorData.defaultData.ids[0]
         .map((id, index) => ({
