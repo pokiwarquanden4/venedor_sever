@@ -106,18 +106,14 @@ export const agentChatbotController = async (preData, message) => {
         }
 
         const recomment = await recommentAgent(preData, message, previousChoices);
-        if (!recomment) return {
-            products: [],
-            message: "Xin lỗi chúng tôi không thể tìm thấy sản phẩm mà bạn mong muốn, điều này có thể do shop hiện đang không có nguồn hàng"
-        };
         recommentId = recomment.decision;
+        if (!recommentId) {
+            attempt++; // tăng số lần thử
+            continue
+        }
         console.log('recommentId: ' + recommentId);
 
         const recommentByCategory = await recommentCategoryAgent(preData, message, recommentId);
-        if (!recommentByCategory) return {
-            products: [],
-            message: "Xin lỗi chúng tôi không thể tìm thấy sản phẩm mà bạn mong muốn, điều này có thể do shop hiện đang không có nguồn hàng"
-        };
         categoryIds = recommentByCategory.decision;
         console.log('categoryId: ' + categoryIds);
 
@@ -164,7 +160,7 @@ export const agentChatbotController = async (preData, message) => {
     }
 }
 
-export const agentSearchController = async (preData, message) => {
+export const agentSearchController = async (preData, message, limit = undefined) => {
     // Translation and combine history
     const translation = await translation_agent(preData, message);
     const translation_decision = translation.decision;
@@ -204,7 +200,12 @@ export const agentSearchController = async (preData, message) => {
 
     const data = await getProductIdsVectorDB([], recommentId, categoryIds, message);
     if (!data) return { products: [] };
-    const storageIds = data.slice(0, 10).map(item => Number(item.id));
+    let storageIds = []
+    if (limit) {
+        storageIds = data.slice(0, limit).map(item => Number(item.id));
+    } else {
+        storageIds = data.map(item => Number(item.id));
+    }
 
     const sqlProducts = await db.Storage.findAll({
         where: {

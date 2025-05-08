@@ -26,7 +26,7 @@ const categories = [
     { id: 6000, name: "Balo & Vali (Vali, Balo, Phụ kiện du lịch và vali, Túi và Gối)" },
     { id: 976, name: "Túi Thời Trang Nữ (Túi Xách, Clutch và Phụ Kiện, Ví)" },
     { id: 27616, name: "Túi Thời Trang Nam (Túi Xách Nam, Ví nam)" },
-    { id: 15078, name: "Chăm Sóc Nhà Cửa (Sản Phẩm Vệ Sinh Nhà Cửa, Giặt Giũ & Chăm Sóc Quần Áo, Diệt Côn Trùng, Khử Mùi & Thơm, Giấy Vệ Sinh & Khăn Giấy)" }
+    { id: 15078, name: "Chăm Sóc Nhà Cửa ( Giặt giũ và chăm sóc quần áo, Rửa chén và sản phẩm cho máy rửa chén, Vệ sinh nhà cửa, Diệt côn trùng, Khử mùi & xịt phòng, Giấy & khăn, Viên và bộ sản phẩm tổng hợp)" }
 ];
 
 
@@ -87,8 +87,10 @@ const recommentAgent = async (preData, message, previousChoices) => {
         ]);
         return results;
     } catch (error) {
-        console.error("Error or timeout occurred:", error.message);
-        return undefined;
+        return {
+            decision: null,
+            message: "Xin lỗi, tôi không thể xử lý yêu cầu của bạn ngay bây giờ."
+        };
     }
 };
 

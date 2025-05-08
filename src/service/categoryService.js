@@ -285,7 +285,7 @@ export const editProduct = async (req, res) => {
 export const searchProduct = async (req, res) => {
   try {
     const data = req.query;
-    const results = await agentSearchController([], data.content)
+    const results = await agentSearchController([], data.content, req.query.limit)
 
     const response = responseWithJWT(req, results.products);
     res.status(200).json(response);
@@ -732,5 +732,92 @@ export const getCatoryList = async (req, res) => {
     res.status(200).json(response);
   } catch (err) {
     res.status(500).json(err);
+  }
+};
+
+export const getShopRanking = async (req, res) => {
+  try {
+    if (req.body.jwtAccount) {
+      const filer = req.query
+
+      const user = await db.User.findOne({
+        include: [
+          {
+            model: db.Storage,
+            attributes: ['id'], // giới hạn trường
+            include: [
+              {
+                model: db.Comment,
+                attributes: ['rate'], // Chỉ lấy trường rate
+              },
+              {
+                model: db.History,
+                attributes: ['paid', 'createdAt'], // Chỉ lấy trường rate
+              },
+            ],
+          },
+        ],
+        where: {
+          account: req.body.jwtAccount,
+        },
+      });
+
+      // Tính toán số lượng đánh giá cho từng mức sao
+      const ratings = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+      let totalRatings = 0;
+
+      user.Storages.forEach((storage) => {
+        storage.Comments.forEach((comment) => {
+          if (comment.rate >= 1 && comment.rate <= 5) {
+            ratings[comment.rate]++;
+            totalRatings++;
+          }
+        });
+      });
+
+      // Chuyển đổi dữ liệu thành dạng ratingData
+      const ratingData = Object.keys(ratings).map((key) => {
+        const value = ratings[key];
+        const percent = totalRatings > 0 ? ((value / totalRatings) * 100).toFixed(2) : 0;
+        return {
+          name: '★'.repeat(key), // Tạo chuỗi sao tương ứng
+          value: value,
+          percent: parseFloat(percent),
+        };
+      });
+
+      // Lấy doanh số trong 7 ngày gần nhất
+      const daysAgo = new Date();
+      daysAgo.setDate(daysAgo.getDate() - filer.salesFiler);
+
+      // Tính toán doanh số từ dữ liệu History đã có
+      const salesMap = {};
+
+      user.Storages.forEach((storage) => {
+        storage.Histories.forEach((history) => {
+          const historyData = history.dataValues
+          const createdAt = new Date(historyData.createdAt);
+          if (createdAt >= daysAgo) {
+            const day = createdAt.toLocaleDateString('vi-VN'); // Định dạng ngày theo dd/MM
+            salesMap[day] = (salesMap[day] || 0) + parseFloat(historyData.paid);
+          }
+        });
+      });
+
+      // Chuyển đổi salesMap thành mảng sales
+      const sales = Object.keys(salesMap).map((day) => ({
+        day: day,
+        sales: salesMap[day],
+      }));
+
+      const response = responseWithJWT(req, {
+        sales: sales,
+        ratingData: ratingData,
+      }, user);
+      res.status(200).json(response);
+    }
+  } catch (err) {
+    console.error("Error in getShopRanking:", err);
+    res.status(500).json({ message: "Internal server error", error: err });
   }
 };

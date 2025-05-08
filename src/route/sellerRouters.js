@@ -7,6 +7,7 @@ import {
   editProductController,
   getAllProductController,
   getOrderController,
+  getShopRankingController,
   searchCategoryProductController,
   searchProductByIdController,
   searchProductController,
@@ -65,6 +66,12 @@ sellerRouters.get(
   routesConfig.sellers.oder.name,
   jwtMiddlewareController,
   getOrderController
+);
+
+sellerRouters.get(
+  routesConfig.sellers.getShopRanking.name,
+  jwtMiddlewareController,
+  getShopRankingController
 );
 
 sellerRouters.post(

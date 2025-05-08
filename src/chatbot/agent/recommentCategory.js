@@ -74,7 +74,10 @@ const recommentCategoryAgent = async (preData, message, recommentId) => {
         return results;
     } catch (error) {
         console.error("Error or timeout occurred:", error.message);
-        return undefined;
+        return {
+            decision: [],
+            message: "Xin lỗi chúng tôi không thể tìm thấy sản phẩm mà bạn mong muốn, điều này có thể do shop hiện đang không có nguồn hàng"
+        };
     }
 };
 

@@ -179,6 +179,11 @@ export const routesConfig = {
       jwt: true,
       role: "Seller",
     },
+    getShopRanking: {
+      name: "/getShopRanking",
+      jwt: true,
+      role: "Seller",
+    },
     deleteProduct: {
       name: "/deleteProduct",
       jwt: true,
