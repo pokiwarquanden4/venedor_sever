@@ -7,7 +7,10 @@ import {
   editProductController,
   getAllProductController,
   getOrderController,
-  getShopRankingController,
+  getRankingDataController,
+  getShopRankingProductSalesController,
+  getShopRankingRatingController,
+  getShopRankingSalesController,
   searchCategoryProductController,
   searchProductByIdController,
   searchProductController,
@@ -69,9 +72,27 @@ sellerRouters.get(
 );
 
 sellerRouters.get(
-  routesConfig.sellers.getShopRanking.name,
+  routesConfig.sellers.getShopRankingRating.name,
   jwtMiddlewareController,
-  getShopRankingController
+  getShopRankingRatingController
+);
+
+sellerRouters.get(
+  routesConfig.sellers.getShopRankingSales.name,
+  jwtMiddlewareController,
+  getShopRankingSalesController
+);
+
+sellerRouters.get(
+  routesConfig.sellers.getShopRankingProductSales.name,
+  jwtMiddlewareController,
+  getShopRankingProductSalesController
+);
+
+sellerRouters.get(
+  routesConfig.sellers.getRankingData.name,
+  jwtMiddlewareController,
+  getRankingDataController
 );
 
 sellerRouters.post(

@@ -13,7 +13,10 @@ import {
   getFeatureProduct,
   getCatoryList,
   deleteProduct,
-  getShopRanking,
+  getRatingData,
+  getSalesData,
+  getProductSalesData,
+  getRankingData,
 } from "../service/categoryService";
 import { addComment, getCommentOfProduct } from "../service/commentService";
 
@@ -70,8 +73,17 @@ export const getCommentController = async (req, res) => {
 export const getCatgoryController = async (req, res) => {
   return await getCatoryList(req, res);
 };
-export const getShopRankingController = async (req, res) => {
-  return await getShopRanking(req, res);
+export const getShopRankingRatingController = async (req, res) => {
+  return await getRatingData(req, res);
+};
+export const getShopRankingSalesController = async (req, res) => {
+  return await getSalesData(req, res);
+};
+export const getShopRankingProductSalesController = async (req, res) => {
+  return await getProductSalesData(req, res);
+};
+export const getRankingDataController = async (req, res) => {
+  return await getRankingData(req, res);
 };
 export const addCommentController = async (req, res) => {
   return await addComment(req, res);

@@ -179,8 +179,23 @@ export const routesConfig = {
       jwt: true,
       role: "Seller",
     },
-    getShopRanking: {
-      name: "/getShopRanking",
+    getShopRankingRating: {
+      name: "/getShopRankingRating",
+      jwt: true,
+      role: "Seller",
+    },
+    getShopRankingSales: {
+      name: "/getShopRankingSales",
+      jwt: true,
+      role: "Seller",
+    },
+    getShopRankingProductSales: {
+      name: "/getShopRankingProductSales",
+      jwt: true,
+      role: "Seller",
+    },
+    getRankingData: {
+      name: "/getRankingData",
       jwt: true,
       role: "Seller",
     },
