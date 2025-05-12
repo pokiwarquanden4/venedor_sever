@@ -77,6 +77,7 @@ export const createProduct = async (req, res) => {
         shipping: 0,
         rate: 0,
         sold: 0,
+        view: 0,
         imgURL: req.body.mainImgUrl,
         listImgURL: req.body.listImgUrl.join('___'),
         disable: false,
@@ -897,7 +898,7 @@ export const getRankingData = async (req, res) => {
         include: [
           {
             model: db.Storage,
-            attributes: ['id'],
+            attributes: ['id', 'view'],
             include: [
               {
                 model: db.History,
@@ -919,12 +920,61 @@ export const getRankingData = async (req, res) => {
       };
 
       user.Storages.forEach((storage) => {
+        results.view += storage.view
         storage.Histories.forEach((history) => {
           results.salesHistory += 1
           results.salesNumber += history.number
         });
       });
 
+      results.viewToBuy = (results.salesNumber / results.view) * 100
+
+      const response = responseWithJWT(req, results, user);
+      res.status(200).json(response);
+    }
+  } catch (err) {
+    console.error("Error in getSalesData:", err);
+    res.status(500).json({ message: "Internal server error", error: err });
+  }
+};
+
+export const getSaleToBuyData = async (req, res) => {
+  try {
+    if (req.body.jwtAccount) {
+      const user = await db.User.findOne({
+        include: [
+          {
+            model: db.Storage,
+            attributes: ['id', 'view', 'productName'],
+            include: [
+              {
+                model: db.History,
+                attributes: ['number'],
+              },
+            ],
+          },
+        ],
+        where: {
+          account: req.body.jwtAccount,
+        },
+      })
+
+      const results = user.Storages.map((storage) => {
+        const result = {
+          productId: storage.id,
+          productName: storage.productName,
+          salesNumber: 0,
+          viewNumber: storage.view,
+          rate: 0
+        }
+        storage.Histories.forEach((history) => {
+          result.salesNumber += history.number
+        });
+
+        result.rate = (result.salesNumber / result.viewNumber) * 100
+
+        return result
+      });
 
       const response = responseWithJWT(req, results, user);
       res.status(200).json(response);

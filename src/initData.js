@@ -116,7 +116,8 @@ async function insertProducts() {
                     listImgURL: productDetail.images.map((img) => img.base_url).join("___"),
                     categoryDetailId: categoryDetailId,
                     categoryId: categoryId,
-                    disable: false
+                    disable: false,
+                    view: 0
                 });
             }
         }
@@ -555,6 +556,54 @@ async function insertCategoryDetails() {
     }
 }
 
+async function updateProductTotalBuy() {
+    try {
+        const products = await db.Storage.findAll({
+            attributes: ['id'],
+            include: [
+                {
+                    model: db.History,
+                    attributes: ['number'], // Chỉ lấy trường 'number'
+                },
+            ],
+        });
+
+        // Chia dữ liệu thành các chunk
+        const chunkArray = (array, chunkSize) =>
+            Array.from({ length: Math.ceil(array.length / chunkSize) }, (_, i) =>
+                array.slice(i * chunkSize, i * chunkSize + chunkSize)
+            );
+
+        const chunkSize = 100; // Kích thước mỗi chunk
+        const productChunks = chunkArray(products, chunkSize);
+
+        for (const chunk of productChunks) {
+            const updates = chunk.map(async (product) => {
+                const bought = product.Histories.reduce((sum, history) => sum + history.number, 0); // Tính tổng số lượng từ Histories
+
+                let view = Math.floor(Math.random() * 100) + 1;
+                if (bought > 0) {
+                    // Tạo hệ số ngẫu nhiên trong khoảng 10-100 (tương ứng với 10% đến 1%)
+                    const randomFactor = Math.random() * (100 - 10) + 10;
+
+                    // Tính view dựa trên hệ số ngẫu nhiên
+                    view = Math.ceil(bought * randomFactor);
+                }
+
+                // Cập nhật trường view trong bảng Storage
+                await product.update({ view: view });
+            });
+
+            // Chờ tất cả các bản ghi trong chunk được cập nhật
+            await Promise.all(updates);
+        }
+
+        console.log("✅ totalBuy and view updated successfully for all products!");
+    } catch (error) {
+        console.error("❌ Error updating totalBuy and view:", error);
+    }
+}
+
 // Run the function
 async function run() {
     try {
@@ -563,11 +612,12 @@ async function run() {
         // await insertProducts();
         // await insertDescriptionsDetail();
         // await insertDescriptionsDetailImage()
-        // await updateProductNumber()
-        // await addComments();
-        // await createAddresses()
-        // await createHistory()
-        await addProductToVectorDB();
+        await updateProductNumber()
+        await addComments();
+        await createAddresses()
+        await createHistory()
+        await updateProductTotalBuy()
+        // await addProductToVectorDB();
     } catch (error) {
         console.error("❌ Error running script:", error);
     }

@@ -17,6 +17,7 @@ import {
   getSalesData,
   getProductSalesData,
   getRankingData,
+  getSaleToBuyData,
 } from "../service/categoryService";
 import { addComment, getCommentOfProduct } from "../service/commentService";
 
@@ -84,6 +85,9 @@ export const getShopRankingProductSalesController = async (req, res) => {
 };
 export const getRankingDataController = async (req, res) => {
   return await getRankingData(req, res);
+};
+export const getSalesToBuyDataController = async (req, res) => {
+  return await getSaleToBuyData(req, res);
 };
 export const addCommentController = async (req, res) => {
   return await addComment(req, res);

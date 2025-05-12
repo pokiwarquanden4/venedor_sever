@@ -8,6 +8,7 @@ import {
   getAllProductController,
   getOrderController,
   getRankingDataController,
+  getSalesToBuyDataController,
   getShopRankingProductSalesController,
   getShopRankingRatingController,
   getShopRankingSalesController,
@@ -93,6 +94,12 @@ sellerRouters.get(
   routesConfig.sellers.getRankingData.name,
   jwtMiddlewareController,
   getRankingDataController
+);
+
+sellerRouters.get(
+  routesConfig.sellers.getSaleToBuyData.name,
+  jwtMiddlewareController,
+  getSalesToBuyDataController
 );
 
 sellerRouters.post(
