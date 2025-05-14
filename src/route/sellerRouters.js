@@ -1,6 +1,7 @@
 import express from "express";
 import multer from "multer";
 import {
+  askOverviewAIController,
   createProductController,
   deleteProductController,
   editOrderController,
@@ -94,6 +95,12 @@ sellerRouters.get(
   routesConfig.sellers.getRankingData.name,
   jwtMiddlewareController,
   getRankingDataController
+);
+
+sellerRouters.post(
+  routesConfig.sellers.askOverviewAI.name,
+  jwtMiddlewareController,
+  askOverviewAIController
 );
 
 sellerRouters.get(

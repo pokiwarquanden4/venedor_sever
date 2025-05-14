@@ -1,4 +1,4 @@
-import askChatbot from "../chatbot/chatbot";
+import { askChatbotSearchingP, askChatbot } from "../chatbot/chatbot";
 import db from "../models/index";
 import { responseWithJWT } from "./jwt/jwtService";
 import { Op } from "sequelize";
@@ -132,7 +132,7 @@ export const createMessage = async (data) => {
 export const askAI = async (req, res) => {
   try {
     const { message, cacheMessage } = req.body;
-    const data = await askChatbot(cacheMessage, message)
+    const data = await askChatbotSearchingP(cacheMessage, message)
 
     const results = data.products.map((product) => {
       const options = data.compareOptions.find(item => item.id === product.id)
@@ -189,6 +189,20 @@ export const askAI = async (req, res) => {
     const response = responseWithJWT(req, {
       message: data.message,
       products: results
+    });
+    res.status(200).json(response);
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const askOverviewAI = async (req, res) => {
+  try {
+    const { message, shopStats } = req.body;
+    const advice = await askChatbot(message, shopStats)
+
+    const response = responseWithJWT(req, {
+      message: advice
     });
     res.status(200).json(response);
   } catch (err) {

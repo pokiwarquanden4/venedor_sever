@@ -199,6 +199,11 @@ export const routesConfig = {
       jwt: true,
       role: "Seller",
     },
+    askOverviewAI: {
+      name: "/askOverviewAI",
+      jwt: true,
+      role: "Seller",
+    },
     getSaleToBuyData: {
       name: "/getSaleToBuyData",
       jwt: true,

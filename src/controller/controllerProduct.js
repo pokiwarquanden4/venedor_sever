@@ -20,6 +20,7 @@ import {
   getSaleToBuyData,
 } from "../service/categoryService";
 import { addComment, getCommentOfProduct } from "../service/commentService";
+import { askOverviewAI } from "../service/messageService";
 
 export const createProductController = async (req, res) => {
   return await createProduct(req, res);
@@ -91,4 +92,7 @@ export const getSalesToBuyDataController = async (req, res) => {
 };
 export const addCommentController = async (req, res) => {
   return await addComment(req, res);
+};
+export const askOverviewAIController = async (req, res) => {
+  return await askOverviewAI(req, res);
 };

@@ -298,7 +298,9 @@ export const searchProduct = async (req, res) => {
 export const searchProductById = async (req, res) => {
   try {
     const data = req.query;
-    const products = await db.Storage.findOne({
+
+    // Tìm sản phẩm theo ID
+    const product = await db.Storage.findOne({
       include: [
         {
           model: db.StorageSpecific,
@@ -311,9 +313,15 @@ export const searchProductById = async (req, res) => {
         id: data.id,
       },
     });
-    const response = responseWithJWT(req, products);
+
+    // Tăng giá trị view lên 1
+    await product.update({ view: product.view + 1 });
+
+    // Trả về sản phẩm sau khi tăng view
+    const response = responseWithJWT(req, product);
     res.status(200).json(response);
   } catch (err) {
+    console.error("Error in searchProductById:", err);
     res.status(500).json(err);
   }
 };
@@ -903,7 +911,7 @@ export const getRankingData = async (req, res) => {
               {
                 model: db.History,
                 attributes: ['number'],
-              },
+              }
             ],
           },
         ],
@@ -913,20 +921,21 @@ export const getRankingData = async (req, res) => {
       })
 
       const results = {
+        productCount: 0,
         salesHistory: 0,
         salesNumber: 0,
         view: 0,
         viewToBuy: 0,
       };
-
       user.Storages.forEach((storage) => {
+        results.productCount += 1
         results.view += storage.view
+
         storage.Histories.forEach((history) => {
           results.salesHistory += 1
           results.salesNumber += history.number
         });
       });
-
       results.viewToBuy = (results.salesNumber / results.view) * 100
 
       const response = responseWithJWT(req, results, user);
