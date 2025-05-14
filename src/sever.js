@@ -14,8 +14,8 @@ let port = process.env.PORT || 8080;
 var server = http.createServer(app);
 const io = new Server(server, { cors: { origin: process.env.URL_REACT } });
 
-//IO handle
-socketConnection(io);
+// //IO handle
+// socketConnection(io);
 
 app.use(cors());
 app.use(express.json());
