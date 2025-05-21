@@ -710,24 +710,20 @@ export const editAccount = async (req, res) => {
         },
       });
 
-      if (req.body.password == user.dataValues.password) {
-        await db.User.update(
-          {
-            password: req.body.newPassword,
-            name: req.body.name,
+      await db.User.update(
+        {
+          name: req.body.name,
+          gender: req.body.gender,
+        },
+        {
+          where: {
+            account: user.dataValues.account,
           },
-          {
-            where: {
-              account: user.dataValues.account,
-            },
-          }
-        );
+        }
+      );
 
-        const response = responseWithJWT(req, "OK", user);
-        res.status(200).json(response);
-      } else {
-        res.status(500).json("Wrong Password");
-      }
+      const response = responseWithJWT(req, "OK", user);
+      res.status(200).json(response);
     }
   } catch (err) {
     res.status(500).json(err);

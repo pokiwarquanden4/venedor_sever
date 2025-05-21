@@ -81,13 +81,15 @@ async function insertProducts() {
 
                 // If seller doesn't exist, create a new one
                 if (!seller) {
+                    const genders = ['Male', 'Female'];
                     seller = await db.User.create({
                         id: product.seller_id,
                         name: `${generateRandomName()}`,
                         email: `seller${product.seller_id}@gmail.com`,
                         account: `seller${product.seller_id}`,
                         password: "1234567890", // Make sure to hash this in real projects
-                        roleName: "Seller"
+                        roleName: "Seller",
+                        gender: genders[Math.floor(Math.random() * genders.length)],
                     });
 
                     await db.Seller.create({
@@ -168,6 +170,7 @@ async function addComments() {
 
                 // If user doesn't exist, create a new one
                 if (!user) {
+                    const genders = ['Male', 'Female'];
                     userLists.push({
                         id: data.userId,
                         name: `${generateRandomName()}`,
@@ -175,6 +178,7 @@ async function addComments() {
                         account: `user${data.userId}`,
                         password: "1234567890", // Ensure to hash this in production
                         roleName: "User",
+                        gender: genders[Math.floor(Math.random() * genders.length)],
                     })
 
                     customerLists.push({
@@ -612,11 +616,11 @@ async function run() {
         // await insertProducts();
         // await insertDescriptionsDetail();
         // await insertDescriptionsDetailImage()
-        await updateProductNumber()
-        await addComments();
-        await createAddresses()
-        await createHistory()
-        await updateProductTotalBuy()
+        // await updateProductNumber()
+        // await addComments();
+        // await createAddresses()
+        // await createHistory()
+        // await updateProductTotalBuy()
         // await addProductToVectorDB();
     } catch (error) {
         console.error("❌ Error running script:", error);

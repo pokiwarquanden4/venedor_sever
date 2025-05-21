@@ -617,107 +617,107 @@ export const getCatoryList = async (req, res) => {
     {
       "8322": {
         "name": "Nhà Sách Tiki",
-        "icon": "https://salt.tikicdn.com/ts/category/ed/20/60/afa9b3b474bf7ad70f10dd6443211d5f.png"
+        "icon": "https://cdn.chanhtuoi.com/uploads/2021/09/top-thuong-hieu-thoi-trang-nu-duoc-ua-chuong.jpg"
       },
       "1883": {
         "name": "Nhà Cửa - Đời Sống",
-        "icon": "https://salt.tikicdn.com/ts/category/f6/22/46/7e2185d2cf1bca72d5aeac385a865b2b.png"
+        "icon": "https://lavenderstudio.com.vn/wp-content/uploads/2017/11/chup-hinh-nha-cua-dep-8-1024x691.jpg"
       },
       "1789": {
         "name": "Điện Thoại - Máy Tính Bảng",
-        "icon": "https://salt.tikicdn.com/ts/category/54/c0/ff/fe98a4afa2d3e5142dc8096addc4e40b.png"
+        "icon": "https://cdn11.dienmaycholon.vn/filewebdmclnew/DMCL21/Picture/News/News_expe_3183/3183.png?version=160216"
       },
       "2549": {
         "name": "Đồ Chơi - Mẹ & Bé",
-        "icon": "https://salt.tikicdn.com/ts/category/13/64/43/226301adcc7660ffcf44a61bb6df99b7.png"
+        "icon": "https://imgs.vietnamnet.vn/Images/2015/09/16/15/20150916150425-choi-voi-con-2.jpg?width=0&s=PmhL6coCcZaIPGjMVCLDrw"
       },
       "1815": {
         "name": "Thiết Bị Số - Phụ Kiện Số",
-        "icon": "https://salt.tikicdn.com/ts/category/75/34/29/78e428fdd90408587181005f5cc3de32.png"
+        "icon": "https://file.hstatic.net/1000069970/file/phu-kien-dien-thoai-icon_1024x1024.jpg"
       },
       "1882": {
         "name": "Điện Gia Dụng",
-        "icon": "https://salt.tikicdn.com/ts/category/61/d4/ea/e6ea3ffc1fcde3b6224d2bb691ea16a2.png"
+        "icon": "https://file.hstatic.net/200000868155/file/do-gia-dung-la-gi-do-dien-gia-dung-gom-nhung-gi-18-10-2022-1.jpg"
       },
       "1520": {
         "name": "Làm Đẹp - Sức Khỏe",
-        "icon": "https://salt.tikicdn.com/ts/category/73/0e/89/bf5095601d17f9971d7a08a1ffe98a42.png"
+        "icon": "https://suckhoehangngay.mediacdn.vn/thumb_w/650/154880486097817600/2020/7/3/yoga-chua-thoai-hoa-cot-song-15937679556291792714348.jpg"
       },
       "8594": {
         "name": "Ô Tô - Xe Máy - Xe Đạp",
-        "icon": "https://salt.tikicdn.com/ts/category/69/f5/36/c6cd9e2849854630ed74ff1678db8f19.png"
+        "icon": "https://hoanghamobile.com/tin-tuc/wp-content/uploads/2024/07/anh-o-to.jpg"
       },
       "931": {
         "name": "Thời trang nữ",
-        "icon": "https://salt.tikicdn.com/ts/category/55/5b/80/48cbaafe144c25d5065786ecace86d38.png"
+        "icon": "https://chupanhnoithat.vn/upload/images/ch%E1%BB%A5p%20%E1%BA%A3nh%20lookbook.jpg"
       },
       "4384": {
         "name": "Bách Hóa Online",
-        "icon": "https://salt.tikicdn.com/ts/category/40/0f/9b/62a58fd19f540c70fce804e2a9bb5b2d.png"
+        "icon": "https://eurorack.vn/vnt_upload/news/09_2020/cua-hang-tap-hoa.png"
       },
       "1975": {
         "name": "Thể Thao - Dã Ngoại",
-        "icon": "https://salt.tikicdn.com/ts/category/0b/5e/3d/00941c9eb338ea62a47d5b1e042843d8.png"
+        "icon": "https://images2.thanhnien.vn/zoom/686_429/Uploaded/hongkyqc/2022_11_29/3011-h1-2959.jpg"
       },
       "915": {
         "name": "Thời trang nam",
-        "icon": "https://salt.tikicdn.com/ts/category/00/5d/97/384ca1a678c4ee93a0886a204f47645d.png"
+        "icon": "https://laforce.vn/wp-content/uploads/2023/06/phong-cach-thoi-trang-nam.jpg"
       },
       "17166": {
         "name": "Cross Border - Hàng Quốc Tế",
-        "icon": "https://salt.tikicdn.com/ts/category/3c/e4/99/eeee1801c838468d94af9997ec2bbe42.png"
+        "icon": "https://tphcm.cdnchinhphu.vn/334895287454388224/2023/11/21/chiphilogistics-1-17005301254681872115281.jpeg"
       },
       "1846": {
         "name": "Laptop - Máy Vi Tính - Linh kiện",
-        "icon": "https://salt.tikicdn.com/ts/category/92/b5/c0/3ffdb7dbfafd5f8330783e1df20747f6.png"
+        "icon": "https://svstore.com.vn/wp-content/uploads/2024/05/laptop-man-hinh-4k-1.jpg"
       },
       "1686": {
         "name": "Giày - Dép nam",
-        "icon": "https://salt.tikicdn.com/ts/category/d6/7f/6c/5d53b60efb9448b6a1609c825c29fa40.png"
+        "icon": "https://www.baolongan.vn/image/news/2022/20220413/images/d1.png"
       },
       "4221": {
         "name": "Điện Tử - Điện Lạnh",
-        "icon": "https://salt.tikicdn.com/ts/category/c8/82/d4/64c561c4ced585c74b9c292208e4995a.png"
+        "icon": "https://phuongnamvina.com/img_data/images/kinh-doanh-vat-tu-dien-lanh-va-nhung-dieu-can-biet.jpeg"
       },
       "1703": {
         "name": "Giày - Dép nữ",
-        "icon": "https://salt.tikicdn.com/ts/category/cf/ed/e1/5a6b58f21fbcad0d201480c987f8defe.png"
+        "icon": "https://top10tphcm.com/wp-content/uploads/2021/08/shop-giay-dep-nu-quan-1-dep-va-chat-luong.jpg"
       },
       "1801": {
         "name": "Máy Ảnh - Máy Quay Phim",
-        "icon": "https://salt.tikicdn.com/ts/category/2d/7c/45/e4976f3fa4061ab310c11d2a1b759e5b.png"
+        "icon": "https://blog.janbox.com/wp-content/uploads/2022/06/Top-5-thuong-hieu-may-anh-xach-tay-Nhat-Ban.jpg"
       },
       "27498": {
         "name": "Phụ kiện thời trang",
-        "icon": "https://salt.tikicdn.com/ts/category/ca/53/64/49c6189a0e1c1bf7cb91b01ff6d3fe43.png"
+        "icon": "https://phuongnamvina.com/img_data/images/bi-quyet-kinh-doanh-phu-kien-thoi-trang-sieu-loi-nhuan.jpg"
       },
       "44792": {
         "name": "NGON",
-        "icon": "https://salt.tikicdn.com/ts/category/1e/8c/08/d8b02f8a0d958c74539316e8cd437cbd.png"
+        "icon": "https://thegioianh.diendandoanhnghiep.vn/wp-content/uploads/2023/03/vietnamese_food_top_banner.jpeg"
       },
       "8371": {
         "name": "Đồng hồ và Trang sức",
-        "icon": "https://salt.tikicdn.com/ts/category/8b/d4/a8/5924758b5c36f3b1c43b6843f52d6dd2.png"
+        "icon": "https://channel.mediacdn.vn/prupload/879/2018/09/img20180906154644335.jpg"
       },
       "6000": {
         "name": "Balo và Vali",
-        "icon": "https://salt.tikicdn.com/ts/category/3e/c0/30/1110651bd36a3e0d9b962cf135c818ee.png"
+        "icon": "https://nonbaohiemdep.vn/wp-content/uploads/2024/07/balo-du-lich-2-1-1024x680.jpg"
       },
       "11312": {
         "name": "Voucher - Dịch vụ",
-        "icon": "https://salt.tikicdn.com/ts/category/0a/c9/7b/8e466bdf6d4a5f5e14665ce56e58631d.png"
+        "icon": "https://trangtri360.com/wp-content/uploads/2024/05/mau-voucher-giam-gia-la-gi.jpg"
       },
       "976": {
         "name": "Túi thời trang nữ",
-        "icon": "https://salt.tikicdn.com/ts/category/31/a7/94/6524d2ecbec216816d91b6066452e3f2.png"
+        "icon": "https://cafebiz.cafebizcdn.vn/thumb_w/600/pr/2021/photo-1-16225228336782062106352-331-0-930-960-crop-1622522862921-63758158216474.jpg"
       },
       "27616": {
         "name": "Túi thời trang nam",
-        "icon": "https://salt.tikicdn.com/ts/category/9b/31/af/669e6a133118e5439d6c175e27c1f963.png"
+        "icon": "https://sakos.vn/wp-content/uploads/2023/05/5-10.jpg"
       },
       "15078": {
         "name": "Chăm sóc nhà cửa",
-        "icon": "https://salt.tikicdn.com/cache/280x280/ts/product/e2/e0/b4/032924958e08c0c9802fca3f157d53a9.jpg"
+        "icon": "https://mihanoi.vn/wp-content/uploads/2024/05/7-meo-vat-huu-ich-cho-viec-don-dep-nha-cua-259f9c42b591423d82b6f0ff9997ecae.jpg"
       }
     }
 
