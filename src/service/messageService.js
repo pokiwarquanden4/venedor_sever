@@ -131,8 +131,8 @@ export const createMessage = async (data) => {
 
 export const askAI = async (req, res) => {
   try {
-    const { message, cacheMessage } = req.body;
-    const data = await askChatbotSearchingP(cacheMessage, message)
+    const { message, cacheMessage, gender = 'Male' } = req.body;
+    const data = await askChatbotSearchingP(cacheMessage, message, gender)
 
     const results = data.products.map((product) => {
       const options = data.compareOptions.find(item => item.id === product.id)

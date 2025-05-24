@@ -3,8 +3,8 @@ import { z } from "zod";
 import { callAI } from "./agent/utils";
 import { zodResponseFormat } from "openai/helpers/zod.mjs";
 
-export const askChatbotSearchingP = async (preData, message) => {
-    const results = await agentChatbotController(preData, message)
+export const askChatbotSearchingP = async (preData, message, gender) => {
+    const results = await agentChatbotController(preData, message, gender)
     return results
 }
 

@@ -74,7 +74,7 @@ async function compareOptionsFunc(preData, message, storageOptions, storageIds, 
     return results
 }
 
-export const agentChatbotController = async (preData, message) => {
+export const agentChatbotController = async (preData, message, gender) => {
     // Translation and combine history
     const translation = await translation_agent(preData, message)
     const translation_decision = translation.decision
@@ -82,7 +82,7 @@ export const agentChatbotController = async (preData, message) => {
     console.log(message)
 
     // Guard
-    const guardData = await guard_agent(preData, message)
+    const guardData = await guard_agent(preData, message, gender)
     const guard_decision = guardData.decision
     if (guard_decision !== 'allowed') {
         return {
