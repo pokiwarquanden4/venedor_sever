@@ -398,7 +398,7 @@ export const searchCategoryProduct = async (req, res) => {
 export const getOrder = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const { page = 1, limit = 10, productId = 0, selectedId = undefined } = req.query; // Default: page=1, limit=10
+      const { page = 1, limit = 10, productId = 0, statusFilter = -1, selectedId = undefined } = req.query; // Default: page=1, limit=10
       const offset = (page - 1) * limit;
 
       const user = await db.User.findOne({
@@ -420,6 +420,9 @@ export const getOrder = async (req, res) => {
       let whereCondition = { productId: selectedProductIds };
       if (selectedId) {
         whereCondition.id = selectedId; // Add selectedId to the where condition
+      }
+      if (statusFilter != -1) {
+        whereCondition.status = statusFilter; // Add statusFilter to the where condition  
       }
 
       const { count: totalHistories, rows: histories } = await db.History.findAndCountAll({

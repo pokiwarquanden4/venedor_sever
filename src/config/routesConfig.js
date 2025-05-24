@@ -109,7 +109,12 @@ export const routesConfig = {
     editAccount: {
       name: "/editAccount",
       jwt: true,
-      role: "User",
+      role: undefined,
+    },
+    updatePassword: {
+      name: "/updatePassword",
+      jwt: true,
+      role: undefined,
     },
     cancelOder: {
       name: "/cancelOder",

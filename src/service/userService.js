@@ -730,6 +730,38 @@ export const editAccount = async (req, res) => {
   }
 };
 
+export const updatePassword = async (req, res) => {
+  try {
+    if (req.body.jwtAccount) {
+      const user = await db.User.findOne({
+        where: {
+          account: req.body.jwtAccount,
+        },
+      });
+
+      if (req.body.password == user.dataValues.password) {
+        await db.User.update(
+          {
+            password: req.body.newPassword,
+          },
+          {
+            where: {
+              account: user.dataValues.account,
+            },
+          }
+        );
+
+        const response = responseWithJWT(req, "OK", user);
+        res.status(200).json(response);
+      } else {
+        res.status(500).json("Wrong Password");
+      }
+    }
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
 export const cancelOrder = async (req, res) => {
   try {
     if (req.body.jwtAccount) {

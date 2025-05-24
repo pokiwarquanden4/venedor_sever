@@ -23,6 +23,7 @@ import {
   wishListController,
   sendCreateAccountOTPController,
   getUserDataController,
+  updatePasswordController,
 } from "../controller/controllerUser";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
@@ -149,6 +150,11 @@ userRouter.post(
   routesConfig.users.editAccount.name,
   jwtMiddlewareController,
   editAccountController
+);
+userRouter.post(
+  routesConfig.users.updatePassword.name,
+  jwtMiddlewareController,
+  updatePasswordController
 );
 
 userRouter.post(

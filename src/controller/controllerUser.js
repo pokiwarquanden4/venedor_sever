@@ -21,6 +21,7 @@ import {
   cancelOrder,
   sendCreateAccountOTP,
   getUserData,
+  updatePassword,
 } from "../service/userService";
 import { purchase } from "../service/purchaseService";
 
@@ -99,6 +100,10 @@ export const getHistoryController = async (req, res) => {
 
 export const editAccountController = async (req, res) => {
   return await editAccount(req, res);
+};
+
+export const updatePasswordController = async (req, res) => {
+  return await updatePassword(req, res);
 };
 
 export const cancelOrderController = async (req, res) => {
