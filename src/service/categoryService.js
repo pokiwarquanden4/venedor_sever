@@ -557,7 +557,7 @@ export const getLatestProduct = async (req, res) => {
     const sortedProducts = products.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
     // Step 3: Select the top 8 products after sorting
-    const topProducts = sortedProducts.slice(0, 8);
+    const topProducts = sortedProducts.slice(0, 20);
 
     // Step 4: Return the response with the top products
     const response = responseWithJWT(req, topProducts);
@@ -584,7 +584,7 @@ export const getBestSellerProduct = async (req, res) => {
     const sortedProducts = products.sort((a, b) => b.sold - a.sold);
 
     // Step 3: Select the top 8 products after sorting
-    const topProducts = sortedProducts.slice(0, 8);
+    const topProducts = sortedProducts.slice(0, 20);
 
     // Step 4: Return the response with the top products
     const response = responseWithJWT(req, topProducts);
@@ -605,7 +605,7 @@ export const getFeatureProduct = async (req, res) => {
       ],
     });
     const sortedProducts = products.sort((a, b) => b.rate - a.rate);
-    const topProducts = sortedProducts.slice(0, 8);
+    const topProducts = sortedProducts.slice(0, 20);
 
     const response = responseWithJWT(req, topProducts);
     res.status(200).json(response);
