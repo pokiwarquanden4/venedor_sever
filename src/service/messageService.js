@@ -1,7 +1,6 @@
 import { askChatbotSearchingP, askChatbot } from "../chatbot/chatbot";
 import db from "../models/index";
 import { responseWithJWT } from "./jwt/jwtService";
-import { Op } from "sequelize";
 import sequelize from "sequelize";
 
 export const createRoomChat = async (req, res) => {

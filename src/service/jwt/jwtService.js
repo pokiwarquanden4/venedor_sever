@@ -41,7 +41,7 @@ export const authenJWT = (req, res) => {
             message: "Token is invalid",
           };
         } else {
-          if (req.body.role === undefined || user.roleName === req.body.role) {
+          if (req.body.role === undefined || req.body.role.includes(user.roleName)) {
             users = user;
             users.refreshToken = true;
           } else {
@@ -53,7 +53,7 @@ export const authenJWT = (req, res) => {
         }
       });
     } else {
-      if (req.body.role === undefined || user.roleName === req.body.role) {
+      if (req.body.role === undefined || req.body.role.includes(user.roleName)) {
         users = user;
       } else {
         return {

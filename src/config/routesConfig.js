@@ -19,17 +19,17 @@ export const routesConfig = {
     createAddress: {
       name: "/createAddress",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     getAddress: {
       name: "/getAddress",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     editAddress: {
       name: "/editAddress",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     getUserData: {
       name: "/getUserData",
@@ -39,57 +39,57 @@ export const routesConfig = {
     deleteAddress: {
       name: "/deleteAddress",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     getWishList: {
       name: "/getWishList",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     createWishList: {
       name: "/createWishList",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     deleteWishList: {
       name: "/deleteWishList",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     deleteAllWishList: {
       name: "/deleteAllWishList",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     wishList: {
       name: "/wishList",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     getCartProduct: {
       name: "/getCartProduct",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     deleteCartProduct: {
       name: "/deleteCartProduct",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     createCartProduct: {
       name: "/createCartProduct",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     editCartProduct: {
       name: "/editCartProduct",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     purchase: {
       name: "/purchase",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     createOtp: {
       name: "/createOtp",
@@ -104,7 +104,7 @@ export const routesConfig = {
     getHistory: {
       name: "/getHistory",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     editAccount: {
       name: "/editAccount",
@@ -119,7 +119,7 @@ export const routesConfig = {
     cancelOder: {
       name: "/cancelOder",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     getDailyDealsProduct: {
       name: "/getDailyDealsProduct",
@@ -164,7 +164,7 @@ export const routesConfig = {
     createRoomChat: {
       name: "/createRoomChat",
       jwt: true,
-      role: "User",
+      role: ["User"],
     },
     getAllRoomChat: {
       name: "/getAllRoomChat",
@@ -182,52 +182,72 @@ export const routesConfig = {
     createProduct: {
       name: "/createProduct",
       jwt: true,
-      role: "Seller",
+      role: ["Seller", "Stocker"],
+    },
+    createStaff: {
+      name: "/createStaff",
+      jwt: true,
+      role: ["Seller"],
+    },
+    editStaff: {
+      name: "/editStaff",
+      jwt: true,
+      role: ["Seller"],
+    },
+    deleteStaff: {
+      name: "/deleteStaff",
+      jwt: true,
+      role: ["Seller"],
+    },
+    getAllStaff: {
+      name: "/getAllStaff",
+      jwt: true,
+      role: ["Seller"],
     },
     getShopRankingRating: {
       name: "/getShopRankingRating",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     getShopRankingSales: {
       name: "/getShopRankingSales",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     getShopRankingProductSales: {
       name: "/getShopRankingProductSales",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     getRankingData: {
       name: "/getRankingData",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     askOverviewAI: {
       name: "/askOverviewAI",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     getSaleToBuyData: {
       name: "/getSaleToBuyData",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     deleteProduct: {
       name: "/deleteProduct",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     getSellerProducts: {
       name: "/getSellerProducts",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     editProduct: {
       name: "/editProduct",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     getProducts: {
       name: "/getProducts",
@@ -247,12 +267,12 @@ export const routesConfig = {
     oder: {
       name: "/oder",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
     editOrder: {
       name: "/editOrder",
       jwt: true,
-      role: "Seller",
+      role: ["Seller"],
     },
   },
 };

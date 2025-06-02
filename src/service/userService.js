@@ -184,7 +184,8 @@ export const loginUser = async (req, res) => {
   try {
     req.body.refreshToken = true;
     const data = req.query;
-    const user = await db.User.findOne({
+    let user
+    user = await db.User.findOne({
       include: [
         {
           model: db.Customer,
@@ -201,6 +202,15 @@ export const loginUser = async (req, res) => {
         password: data.password,
       },
     });
+
+    if (!user) {
+      user = await db.Staff.findOne({
+        where: {
+          account: data.account,
+          password: data.password,
+        },
+      });
+    }
 
     user.dataValues = {
       ...user.dataValues,

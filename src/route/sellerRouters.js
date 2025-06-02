@@ -19,6 +19,7 @@ import {
 } from "../controller/controllerProduct";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
+import { createStaffController, deleteStaffController, editStaffController, getAllStaffController } from "../controller/controllerStaff";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -113,6 +114,30 @@ sellerRouters.post(
   routesConfig.sellers.editOrder.name,
   jwtMiddlewareController,
   editOrderController
+);
+
+sellerRouters.post(
+  routesConfig.sellers.createStaff.name,
+  jwtMiddlewareController,
+  createStaffController
+);
+
+sellerRouters.post(
+  routesConfig.sellers.editStaff.name,
+  jwtMiddlewareController,
+  editStaffController
+);
+
+sellerRouters.post(
+  routesConfig.sellers.deleteStaff.name,
+  jwtMiddlewareController,
+  deleteStaffController
+);
+
+sellerRouters.get(
+  routesConfig.sellers.getAllStaff.name,
+  jwtMiddlewareController,
+  getAllStaffController
 );
 
 export default sellerRouters;
