@@ -234,12 +234,24 @@ export const loginUser = async (req, res) => {
 export const getUserData = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const user = await db.User.findOne({
+      let user = await db.User.findOne({
         where: {
           account: req.body.jwtAccount,
         },
         attributes: { exclude: ["password", "otp"] }
       });
+
+      if (!user) {
+        // Nếu không tìm thấy user, tìm trong staff
+        user = await db.Staff.findOne({
+          where: { account: req.body.jwtAccount },
+          attributes: { exclude: ["password"] }
+        });
+
+        if (!user) {
+          return res.status(404).json({ message: "User or Staff not found" });
+        }
+      }
 
       const response = responseWithJWT(req, user, user);
       res.status(200).json(response);

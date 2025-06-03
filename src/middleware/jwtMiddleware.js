@@ -13,11 +13,13 @@ const jwtMiddleware = async (req, res, next) => {
           req.body = {
             ...req.body,
             jwtAccount: user.account,
+            role: user.roleName
           };
         } else {
           req.body = {
             ...req.body,
             jwtAccount: user.account,
+            role: user.roleName,
             refreshToken: user.refreshToken,
           };
         }

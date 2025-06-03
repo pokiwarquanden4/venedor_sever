@@ -237,17 +237,17 @@ export const routesConfig = {
     deleteProduct: {
       name: "/deleteProduct",
       jwt: true,
-      role: ["Seller"],
+      role: ["Seller", 'Stocker'],
     },
     getSellerProducts: {
       name: "/getSellerProducts",
       jwt: true,
-      role: ["Seller"],
+      role: ["Seller", 'Stocker'],
     },
     editProduct: {
       name: "/editProduct",
       jwt: true,
-      role: ["Seller"],
+      role: ["Seller", 'Stocker'],
     },
     getProducts: {
       name: "/getProducts",
@@ -267,12 +267,12 @@ export const routesConfig = {
     oder: {
       name: "/oder",
       jwt: true,
-      role: ["Seller"],
+      role: ["Seller", 'Shipper', 'Stocker'],
     },
     editOrder: {
       name: "/editOrder",
       jwt: true,
-      role: ["Seller"],
+      role: ["Seller", 'Shipper', 'Stocker'],
     },
   },
 };

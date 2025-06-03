@@ -25,6 +25,7 @@ export const addDVectorDB = async (collection, data, chunkSize = 200) => {
 export const deleteDVectorDB = async (collection, ids, chunkSize = 200) => {
     for (let i = 0; i < ids.length; i += chunkSize) {
         const chunk = ids.slice(i, i + chunkSize);
+        console.log(chunk)
         await collection.delete({ ids: chunk });
     }
 };

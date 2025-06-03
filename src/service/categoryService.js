@@ -21,14 +21,23 @@ const storage = getStorage();
 export const deleteProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const user = await db.User.findOne({
+      let user = await db.User.findOne({
         where: { account: req.body.jwtAccount },
       });
+      if (!user) {
+        // Nếu không tìm thấy user, tìm trong staff
+        user = await db.Staff.findOne({
+          where: { account: req.body.jwtAccount },
+        });
+
+        if (!user) {
+          return res.status(404).json({ message: "User or Staff not found" });
+        }
+      }
 
       const product = await db.Storage.findOne({
         where: {
           id: req.body.id,
-          sellerId: user.sellerId,
         },
       });
 
@@ -43,7 +52,7 @@ export const deleteProduct = async (req, res) => {
 
       //Delete vectorDB
       const collection = await getCollection()
-      await deleteDVectorDB(collection, [product.id])
+      await deleteDVectorDB(collection, [String(product.id)])
 
       // Delete the main product
       await product.destroy();
@@ -62,18 +71,31 @@ export const deleteProduct = async (req, res) => {
 export const createProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const user = await db.User.findOne({
+      let user = await db.User.findOne({
         where: {
           account: req.body.jwtAccount,
         },
       });
+      let stockOwnerId = user?.id
+
+      if (!user) {
+        // Nếu không tìm thấy user, tìm trong staff
+        user = await db.Staff.findOne({
+          where: { account: req.body.jwtAccount },
+        });
+        stockOwnerId = user.sellerId
+
+        if (!user) {
+          return res.status(404).json({ message: "User or Staff not found" });
+        }
+      }
 
       // Create Storage
       let nextID = ((await db.Storage.max("id")) || 0) + 1
       const newProduct = {
         ...req.body,
         id: nextID,
-        sellerId: user.id,
+        sellerId: stockOwnerId,
         shipping: 0,
         rate: 0,
         sold: 0,
@@ -150,24 +172,35 @@ export const getSellerProducts = async (req, res) => {
       const offset = (page - 1) * limit;
 
       // Get the user
-      const user = await db.User.findOne({
+      let user = await db.User.findOne({
         where: {
           account: req.body.jwtAccount,
         },
       });
+      let stockOwnerId = user?.id
 
-      if (!user) return res.status(404).json({ message: "User not found" });
+      if (!user) {
+        // Nếu không tìm thấy user, tìm trong staff
+        user = await db.Staff.findOne({
+          where: { account: req.body.jwtAccount },
+        });
+        stockOwnerId = user.sellerId
+
+        if (!user) {
+          return res.status(404).json({ message: "User or Staff not found" });
+        }
+      }
 
       // Get total count of storages for this user
       const total = await db.Storage.count({
-        where: { sellerId: user.id },
+        where: { sellerId: stockOwnerId },
       });
 
       const totalPages = Math.ceil(total / limit);
 
       // Get paginated storages
       const storages = await db.Storage.findAll({
-        where: { sellerId: user.id },
+        where: { sellerId: stockOwnerId },
         limit,
         offset,
         include: [
@@ -193,16 +226,29 @@ export const getSellerProducts = async (req, res) => {
 export const editProduct = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const user = await db.User.findOne({
+      let user = await db.User.findOne({
         where: {
           account: req.body.jwtAccount,
         },
       });
+      let stockOwnerId = user?.id
+
+      if (!user) {
+        // Nếu không tìm thấy user, tìm trong staff
+        user = await db.Staff.findOne({
+          where: { account: req.body.jwtAccount },
+        });
+        stockOwnerId = user.sellerId
+
+        if (!user) {
+          return res.status(404).json({ message: "User or Staff not found" });
+        }
+      }
 
       // Update Storage
       const newProduct = {
         ...req.body,
-        sellerId: user.id,
+        sellerId: stockOwnerId,
         id: req.body.id,
         imgURL: req.body.mainImgUrl,
         listImgURL: req.body.listImgUrl.join('___'),
@@ -211,14 +257,14 @@ export const editProduct = async (req, res) => {
       await db.Storage.update(newProduct, {
         where: {
           id: req.body.id,
-          sellerId: user.id,
+          sellerId: stockOwnerId,
         },
       });
 
       const updatedProduct = await db.Storage.findOne({
         where: {
           id: req.body.id,
-          sellerId: user.id,
+          sellerId: stockOwnerId,
         },
       });
 
@@ -401,19 +447,38 @@ export const getOrder = async (req, res) => {
       const { page = 1, limit = 10, productId = 0, statusFilter = -1, selectedId = undefined } = req.query; // Default: page=1, limit=10
       const offset = (page - 1) * limit;
 
-      const user = await db.User.findOne({
+      let user = await db.User.findOne({
         include: [{ model: db.Storage }],
         where: { account: req.body.jwtAccount },
       });
-
+      let storages = user?.dataValues.Storages
       // Check if user exists
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        // Nếu không tìm thấy user, tìm trong staff
+        user = await db.Staff.findOne({
+          include: [
+            {
+              model: db.User,
+              include: [
+                {
+                  model: db.Storage,
+                },
+              ],
+            },
+          ],
+          where: { account: req.body.jwtAccount },
+        });
+
+        storages = user?.User.Storages;
+
+        if (!user) {
+          return res.status(404).json({ message: "User or Staff not found" });
+        }
       }
 
       // If productId is 0, get all storage IDs
       let selectedProductIds = productId == 0
-        ? user.dataValues.Storages.map((storage) => storage.id)
+        ? storages.map((storage) => storage.id)
         : [productId];
 
       // Build where condition
@@ -444,7 +509,7 @@ export const getOrder = async (req, res) => {
       const response = responseWithJWT(
         req,
         {
-          storages: user.dataValues.Storages,
+          storages: storages,
           histories: histories,
           totalPages: totalPages,
         },
@@ -461,7 +526,7 @@ export const getOrder = async (req, res) => {
 export const editOrder = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
-      const user = await db.User.findOne({
+      let user = await db.User.findOne({
         include: [
           {
             model: db.Storage,
@@ -474,50 +539,80 @@ export const editOrder = async (req, res) => {
           account: req.body.jwtAccount,
         },
       });
+      let storage = user?.dataValues.Storages[0].dataValues
+      if (!user) {
+        // Nếu không tìm thấy user, tìm trong staff
+        user = await db.Staff.findOne({
+          include: [
+            {
+              model: db.User,
+              include: [
+                {
+                  model: db.Storage,
+                  where: {
+                    id: req.body.productId,
+                  },
+                },
+              ],
+            },
+          ],
+          where: { account: req.body.jwtAccount },
+        });
+
+        storage = user?.User.Storages[0].dataValues;
+
+        if (!user) {
+          return res.status(404).json({ message: "User or Staff not found" });
+        }
+      }
 
       const history = await db.History.findOne({
         where: {
           id: req.body.historyId,
-          productId: user.dataValues.Storages[0].dataValues.id,
         },
       });
 
-      if (
-        history &&
-        req.body.status != 1 &&
-        req.body.status != 0 &&
-        req.body.status != 2
-      ) {
+      // Kiểm tra quyền theo role
+      const { role, status } = req.body;
+      let allow = false;
+      if (role === "Seller") {
+        allow = true; // Full quyền
+      } else if (role === "Stocker" && [0, 1, 3].includes(Number(status))) {
+        allow = true;
+      } else if (role === "Shipper" && [2, 3].includes(Number(status))) {
+        allow = true;
+      }
+
+      if (!allow) {
+        return res.status(403).json({ message: "Bạn không có quyền cập nhật trạng thái này!" });
+      }
+
+      if (history && status == 3) {
         await db.Storage.update(
           {
             number:
-              user.dataValues.Storages[0].dataValues.number + req.body.number,
+              storage.number + req.body.number,
           },
           {
             where: {
-              id: user.dataValues.Storages[0].dataValues.id,
-            },
-          }
-        );
-        await db.History.destroy({
-          where: {
-            id: req.body.historyId,
-            productId: user.dataValues.Storages[0].dataValues.id,
-          },
-        });
-      } else {
-        await db.History.update(
-          {
-            status: req.body.status,
-          },
-          {
-            where: {
-              id: req.body.historyId,
-              productId: user.dataValues.Storages[0].dataValues.id,
+              id: storage.id,
             },
           }
         );
       }
+
+      // Thực hiện cập nhật trạng thái
+      await db.History.update(
+        {
+          status: status,
+        },
+        {
+          where: {
+            id: req.body.historyId,
+            productId: storage.id,
+          },
+        }
+      );
 
       const response = responseWithJWT(req, "Ok", user);
       res.status(200).json(response);
