@@ -852,3 +852,65 @@ export const cancelOrder = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
+
+export const makePayment = async (req, res) => {
+  const data = req.body
+
+  // Tạo payment mới
+  const payment = await db.Payment.create({
+    gateway: data.gateway,
+    transactionDate: data.transactionDate,
+    accountNumber: data.accountNumber,
+    code: data.code,
+    content: data.content,
+    transferType: data.transferType,
+    transferAmount: data.transferAmount,
+    accumulated: data.accumulated,
+    subAccount: data.subAccount,
+    referenceCode: data.referenceCode,
+    description: data.description,
+    historyId: data.historyId || null,
+  });
+  try {
+    const data = req.body
+
+    // Tạo payment mới
+    const payment = await db.Payment.create({
+      gateway: data.gateway,
+      transactionDate: data.transactionDate,
+      accountNumber: data.accountNumber,
+      code: data.code,
+      content: data.content,
+      transferType: data.transferType,
+      transferAmount: data.transferAmount,
+      accumulated: data.accumulated,
+      subAccount: data.subAccount,
+      referenceCode: data.referenceCode,
+      description: data.description,
+      historyId: data.historyId || null,
+    });
+
+    const response = responseWithJWT(req, payment);
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};
+
+export const getPayment = async (req, res) => {
+  try {
+    // Lấy tất cả các payment, chỉ lấy trường description
+    const payments = await db.Payment.findAll({
+      attributes: ['content'],
+    });
+
+    // Trả về mảng các content
+    const descriptions = payments.map(payment => payment.content);
+
+    const response = responseWithJWT(req, descriptions);
+    res.status(200).json(response);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+};

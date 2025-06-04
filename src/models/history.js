@@ -61,6 +61,9 @@ module.exports = (sequelize, DataTypes) => {
     History.belongsTo(models.User, {
       foreignKey: "userId",
     });
+    History.hasOne(models.Payment, {
+      foreignKey: "historyId",
+    });
     History.belongsTo(models.Storage, {
       foreignKey: "productId",
     });

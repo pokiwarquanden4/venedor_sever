@@ -24,6 +24,8 @@ import {
   sendCreateAccountOTPController,
   getUserDataController,
   updatePasswordController,
+  makePaymentController,
+  getPaymentController,
 } from "../controller/controllerUser";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
@@ -55,6 +57,16 @@ userRouter.post(
   routesConfig.users.createUser.name,
   jwtMiddlewareController,
   createUserController
+);
+userRouter.post(
+  routesConfig.users.makePayment.name,
+  jwtMiddlewareController,
+  makePaymentController
+);
+userRouter.get(
+  routesConfig.users.getPayment.name,
+  jwtMiddlewareController,
+  getPaymentController
 );
 userRouter.post(
   routesConfig.users.createAddress.name,

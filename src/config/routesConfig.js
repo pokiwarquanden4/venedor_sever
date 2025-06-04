@@ -16,6 +16,16 @@ export const routesConfig = {
       jwt: false,
       role: undefined,
     },
+    makePayment: {
+      name: "/makePayment",
+      jwt: false,
+      role: undefined,
+    },
+    getPayment: {
+      name: "/getPayment",
+      jwt: false,
+      role: undefined,
+    },
     createAddress: {
       name: "/createAddress",
       jwt: true,
