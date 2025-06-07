@@ -691,7 +691,7 @@ export const getHistory = async (req, res) => {
                 include: [
                   {
                     model: db.Refund,
-                    attributes: ["id"],
+                    attributes: ["id", 'status'],
                   },
                 ],
               },

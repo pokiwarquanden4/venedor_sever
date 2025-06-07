@@ -232,6 +232,63 @@ export const getAllReported = async (req, res) => {
     }
 };
 
+export const getAllRefund = async (req, res) => {
+    try {
+        if (req.body.jwtAccount) {
+            let user = await db.User.findOne({
+                where: { account: req.body.jwtAccount },
+            });
+
+            const { page = 1, limit = 20 } = req.query;
+            const offset = (page - 1) * limit;
+
+            let whereCondition = {};
+
+            whereCondition.status = 0;
+            if (user.roleName === 'Admin') {
+            } else if (user.roleName === 'Seller') {
+                // Chỉ lấy refund của sản phẩm do seller sở hữu và status = 0 hoặc 3
+                whereCondition.status = { [Op.in]: [0, 3] };
+                whereCondition['$Storage.sellerId$'] = user.id;
+            }
+
+            // Lấy danh sách refund và phân trang
+            const { count, rows: refunds } = await db.Refund.findAndCountAll({
+                where: whereCondition,
+                include: [
+                    {
+                        model: db.User,
+                        attributes: ['id', 'name', 'account', 'email'],
+                    },
+                    {
+                        model: db.Storage,
+                        attributes: ['id', 'productName', 'sellerId'],
+                        include: [
+                            {
+                                model: db.User,
+                                attributes: ['id', 'name', 'account', 'email'],
+                            }
+                        ]
+                    }
+                ],
+                offset: parseInt(offset),
+                limit: parseInt(limit),
+                order: [['createdAt', 'DESC']],
+            });
+
+            const data = {
+                totalPages: Math.ceil(count / limit),
+                refunds,
+            };
+
+            const response = responseWithJWT(req, data, user);
+            res.status(200).json(response);
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
 export const createRefund = async (req, res) => {
     try {
         if (req.body.jwtAccount) {
@@ -244,6 +301,7 @@ export const createRefund = async (req, res) => {
             const refund = await db.Refund.create({
                 userId: user.id,
                 productId: req.body.productId,
+                historyId: req.body.historyId,
                 reason: req.body.reason,
                 evidenceURL: req.body.evidenceURL,
                 refundBankURL: req.body.refundBankURL,
@@ -310,6 +368,35 @@ export const handleReport = async (req, res) => {
             }
 
             const response = responseWithJWT(req, report, user);
+            res.status(200).json(response);
+        }
+    } catch (err) {
+        res.status(500).json(err);
+    }
+};
+
+export const handleRefund = async (req, res) => {
+    try {
+        if (req.body.jwtAccount) {
+            // Lấy thông tin user gửi yêu cầu hoàn tiền
+            const user = await db.User.findOne({
+                where: { account: req.body.jwtAccount },
+            });
+
+            const { refundId, status } = req.body;
+
+            // Lấy report
+            const refund = await db.Refund.findByPk(refundId, {
+                include: [{ model: db.Storage }]
+            });
+
+            if (!refund) {
+                return res.status(404).json({ message: "Refund not found" });
+            }
+
+            refund.update({ status: status });
+
+            const response = responseWithJWT(req, refund, user);
             res.status(200).json(response);
         }
     } catch (err) {

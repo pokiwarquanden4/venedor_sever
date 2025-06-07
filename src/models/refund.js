@@ -17,6 +17,10 @@ module.exports = (sequelize, DataTypes) => {
                 type: DataTypes.INTEGER,
                 allowNull: false,
             },
+            historyId: {
+                type: DataTypes.INTEGER,
+                allowNull: false,
+            },
             reason: {
                 type: DataTypes.STRING,
             },
@@ -42,6 +46,9 @@ module.exports = (sequelize, DataTypes) => {
         });
         Refund.belongsTo(models.Storage, {
             foreignKey: "productId",
+        });
+        Refund.belongsTo(models.History, {
+            foreignKey: "historyId",
         });
     };
     return Refund;

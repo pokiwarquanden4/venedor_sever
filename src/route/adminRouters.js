@@ -2,7 +2,7 @@ import express from "express";
 import multer from "multer";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
-import { createRefundController, createReportController, disableUserController, getAllReportedController, getGraphController, getSellerListController, getUserListController, handleReportController } from "../controller/adminController";
+import { createRefundController, createReportController, disableUserController, getAllRefundController, getAllReportedController, getGraphController, getSellerListController, getUserListController, handleRefundController, handleReportController } from "../controller/adminController";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -33,10 +33,22 @@ adminRoutes.get(
     getAllReportedController
 );
 
+adminRoutes.get(
+    routesConfig.admin.getAllRefund.name,
+    jwtMiddlewareController,
+    getAllRefundController
+);
+
 adminRoutes.post(
     routesConfig.admin.handleReport.name,
     jwtMiddlewareController,
     handleReportController
+);
+
+adminRoutes.post(
+    routesConfig.admin.handleRefund.name,
+    jwtMiddlewareController,
+    handleRefundController
 );
 
 adminRoutes.post(

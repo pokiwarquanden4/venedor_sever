@@ -1,4 +1,4 @@
-import { getSellerList, getUserList, disableUser, createReport, createRefund, getAllReported, getGraph, handleReport } from "../service/adminService";
+import { getSellerList, getUserList, disableUser, createReport, createRefund, getAllReported, getGraph, handleReport, getAllRefund, handleRefund } from "../service/adminService";
 
 export const getUserListController = async (req, res) => {
     return await getUserList(req, res);
@@ -16,12 +16,20 @@ export const getAllReportedController = async (req, res) => {
     return await getAllReported(req, res);
 };
 
+export const getAllRefundController = async (req, res) => {
+    return await getAllRefund(req, res);
+};
+
 export const disableUserController = async (req, res) => {
     return await disableUser(req, res);
 };
 
 export const handleReportController = async (req, res) => {
     return await handleReport(req, res);
+};
+
+export const handleRefundController = async (req, res) => {
+    return await handleRefund(req, res);
 };
 
 export const createReportController = async (req, res) => {

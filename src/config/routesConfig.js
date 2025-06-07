@@ -312,10 +312,20 @@ export const routesConfig = {
       jwt: true,
       role: ["Admin"],
     },
+    getAllRefund: {
+      name: "/getAllRefund",
+      jwt: true,
+      role: ["Admin", 'Seller'],
+    },
     handleReport: {
       name: "/handleReport",
       jwt: true,
       role: ["Admin"],
+    },
+    handleRefund: {
+      name: "/handleRefund",
+      jwt: true,
+      role: ["Admin", 'Seller', 'User'],
     },
     disableUser: {
       name: "/disableUser",
