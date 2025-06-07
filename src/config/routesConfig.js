@@ -224,6 +224,11 @@ export const routesConfig = {
       jwt: true,
       role: ["Seller"],
     },
+    getStockNumber: {
+      name: "/getStockNumber",
+      jwt: true,
+      role: ["Seller", 'Stocker'],
+    },
     getShopRankingProductSales: {
       name: "/getShopRankingProductSales",
       jwt: true,
@@ -285,6 +290,49 @@ export const routesConfig = {
       role: ["Seller", 'Shipper', 'Stocker'],
     },
   },
+  admin: {
+    name: "/admin",
+    getUserList: {
+      name: "/getUserList",
+      jwt: true,
+      role: ["Admin"],
+    },
+    getSellerList: {
+      name: "/getSellerList",
+      jwt: true,
+      role: ["Admin"],
+    },
+    getGraph: {
+      name: "/getGraph",
+      jwt: true,
+      role: ["Admin"],
+    },
+    getAllReported: {
+      name: "/getAllReported",
+      jwt: true,
+      role: ["Admin"],
+    },
+    handleReport: {
+      name: "/handleReport",
+      jwt: true,
+      role: ["Admin"],
+    },
+    disableUser: {
+      name: "/disableUser",
+      jwt: true,
+      role: ["Admin"],
+    },
+    createReport: {
+      name: "/createReport",
+      jwt: true,
+      role: ["User"],
+    },
+    createRefund: {
+      name: "/createRefund",
+      jwt: true,
+      role: ["User"],
+    },
+  }
 };
 
 export const checkConfigJWT = (urlString) => {

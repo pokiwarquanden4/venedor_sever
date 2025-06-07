@@ -36,6 +36,10 @@ module.exports = (sequelize, DataTypes) => {
       otp: {
         type: DataTypes.STRING,
       },
+      disable: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+      },
     },
     {
       timestamps: true,
@@ -44,6 +48,9 @@ module.exports = (sequelize, DataTypes) => {
 
   User.associate = (models) => {
     User.hasOne(models.Customer, {
+      foreignKey: "userId",
+    });
+    User.hasMany(models.Reported, {
       foreignKey: "userId",
     });
     User.hasMany(models.Storage, {

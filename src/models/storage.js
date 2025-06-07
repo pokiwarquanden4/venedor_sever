@@ -100,6 +100,9 @@ module.exports = (sequelize, DataTypes) => {
     Storage.hasMany(models.History, {
       foreignKey: "productId",
     });
+    Storage.hasMany(models.Refund, {
+      foreignKey: "productId",
+    });
     Storage.hasMany(models.StorageSpecific, {
       foreignKey: "storageId",
     });

@@ -13,6 +13,7 @@ import {
   getShopRankingProductSalesController,
   getShopRankingRatingController,
   getShopRankingSalesController,
+  getStockNumberController,
   searchCategoryProductController,
   searchProductByIdController,
   searchProductController,
@@ -85,6 +86,13 @@ sellerRouters.get(
   jwtMiddlewareController,
   getShopRankingSalesController
 );
+
+sellerRouters.get(
+  routesConfig.sellers.getStockNumber.name,
+  jwtMiddlewareController,
+  getStockNumberController
+);
+
 
 sellerRouters.get(
   routesConfig.sellers.getShopRankingProductSales.name,

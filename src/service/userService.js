@@ -200,6 +200,7 @@ export const loginUser = async (req, res) => {
       where: {
         account: data.account,
         password: data.password,
+        disable: false
       },
     });
 
@@ -681,6 +682,18 @@ export const getHistory = async (req, res) => {
             include: [
               {
                 model: db.StorageSpecificPics,
+              },
+            ],
+            include: [
+              {
+                model: db.Storage,
+                attributes: ["id"],
+                include: [
+                  {
+                    model: db.Refund,
+                    attributes: ["id"],
+                  },
+                ],
               },
             ],
           },

@@ -385,32 +385,32 @@ export const searchCategoryProduct = async (req, res) => {
     // Xử lý sortType
     let order = [];
     switch (sortType) {
-      case "Feature":
+      case "Tính năng":
         order = [["rate", "DESC"]]; // Sắp xếp theo đánh giá cao nhất
         break;
-      case "Best Selling":
+      case "Bán chạy nhất":
         order = [["sold", "DESC"]]; // Sắp xếp theo số lượng bán nhiều nhất
         break;
-      case "Alphabetically,A-Z":
+      case "Theo bảng chữ cái, A-Z":
         order = [["productName", "ASC"]]; // Sắp xếp theo tên sản phẩm từ A-Z
         break;
-      case "Alphabetically,Z-A":
+      case "Theo bảng chữ cái, Z-A":
         order = [["productName", "DESC"]]; // Sắp xếp theo tên sản phẩm từ Z-A
         break;
-      case "Price, low to high":
+      case "Giá, thấp đến cao":
         order = [
           [sequelize.literal("price * (1 - (saleOff / 100))"), "ASC"] // Sắp xếp theo giá sau giảm dần
         ];
         break;
-      case "Price, high to low":
+      case "Giá, cao đến thấp":
         order = [
           [sequelize.literal("price * (1 - (saleOff / 100))"), "DESC"] // Sắp xếp theo giá sau giảm tăng
         ];
         break;
-      case "Date, old to new":
+      case "Ngày, cũ đến mới":
         order = [["createdAt", "ASC"]]; // Sắp xếp theo ngày tạo từ cũ đến mới
         break;
-      case "Date, new to old":
+      case "Ngày, mới đến cũ":
         order = [["createdAt", "DESC"]]; // Sắp xếp theo ngày tạo từ mới đến cũ
         break;
       default:
@@ -941,6 +941,36 @@ export const getSalesData = async (req, res) => {
     }
   } catch (err) {
     console.error("Error in getSalesData:", err);
+    res.status(500).json({ message: "Internal server error", error: err });
+  }
+};
+
+export const getStockNumber = async (req, res) => {
+  try {
+    if (req.body.jwtAccount) {
+      const user = await db.User.findOne({
+        include: [
+          {
+            model: db.Storage,
+            attributes: ['id', 'productName', 'number'],
+          },
+        ],
+        where: {
+          account: req.body.jwtAccount,
+        },
+      });
+
+      // Map dữ liệu về dạng { name, stock }
+      const data = user.Storages.map(storage => ({
+        name: storage.productName,
+        stock: storage.number,
+      }));
+
+      const response = responseWithJWT(req, data, user);
+      res.status(200).json(response);
+    }
+  } catch (err) {
+    console.error("Error in getStockNumber:", err);
     res.status(500).json({ message: "Internal server error", error: err });
   }
 };

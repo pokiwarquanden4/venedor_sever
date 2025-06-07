@@ -18,6 +18,7 @@ import {
   getProductSalesData,
   getRankingData,
   getSaleToBuyData,
+  getStockNumber,
 } from "../service/categoryService";
 import { addComment, getCommentOfProduct } from "../service/commentService";
 import { askOverviewAI } from "../service/messageService";
@@ -80,6 +81,9 @@ export const getShopRankingRatingController = async (req, res) => {
 };
 export const getShopRankingSalesController = async (req, res) => {
   return await getSalesData(req, res);
+};
+export const getStockNumberController = async (req, res) => {
+  return await getStockNumber(req, res);
 };
 export const getShopRankingProductSalesController = async (req, res) => {
   return await getProductSalesData(req, res);
