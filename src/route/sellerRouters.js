@@ -1,26 +1,12 @@
 import express from "express";
 import multer from "multer";
-import {
-  askOverviewAIController,
-  createProductController,
-  deleteProductController,
-  editOrderController,
-  editProductController,
-  getAllProductController,
-  getOrderController,
-  getRankingDataController,
-  getSalesToBuyDataController,
-  getShopRankingProductSalesController,
-  getShopRankingRatingController,
-  getShopRankingSalesController,
-  getStockNumberController,
-  searchCategoryProductController,
-  searchProductByIdController,
-  searchProductController,
-} from "../controller/controllerProduct";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
-import { createStaffController, deleteStaffController, editStaffController, getAllStaffController } from "../controller/controllerStaff";
+import { createProductController, deleteProductController, editProductController, getAllProductController } from "../controller/sellerController";
+import { getRankingDataController, getSalesToBuyDataController, getShopRankingProductSalesController, getShopRankingRatingController, getShopRankingSalesController, getStockNumberController, searchCategoryProductController, searchProductByIdController, searchProductController } from "../controller/productController";
+import { editOrderController, getOrderController } from "../controller/purchaseController";
+import { askOverviewAIController } from "../controller/messageController";
+import { createStaffController, deleteStaffController, editStaffController, getAllStaffController } from "../controller/staffController";
 
 const upload = multer({ storage: multer.memoryStorage() });
 

@@ -33,6 +33,7 @@ export const createRoomChat = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
 export const getAllRoomChat = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
@@ -95,6 +96,7 @@ export const getAllRoomChat = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
 export const getMessageByRoomChat = async (req, res) => {
   try {
     if (req.body.jwtAccount) {
@@ -116,6 +118,7 @@ export const getMessageByRoomChat = async (req, res) => {
     res.status(500).json(err);
   }
 };
+
 export const createMessage = async (data) => {
   try {
     await db.Message.create({

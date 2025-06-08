@@ -1,49 +1,11 @@
 import express from "express";
-import {
-  cancelOrderController,
-  createAddressController,
-  createCartProductController,
-  createOtpController,
-  createUserController,
-  createWishListController,
-  deleteAddressController,
-  deleteAllWishListController,
-  deleteCartProductController,
-  deleteWishListController,
-  editAccountController,
-  editAddressController,
-  editCartProductController,
-  getAddressController,
-  getCartProductController,
-  getHistoryController,
-  getPasswordController,
-  getWishListController,
-  loginUserController,
-  purchaseController,
-  wishListController,
-  sendCreateAccountOTPController,
-  getUserDataController,
-  updatePasswordController,
-  makePaymentController,
-  getPaymentController,
-} from "../controller/controllerUser";
 import { routesConfig } from "../config/routesConfig";
 import { jwtMiddlewareController } from "../middleware/jwtMiddleware";
-import {
-  addCommentController,
-  getBestSellerProductController,
-  getCatgoryController,
-  getCommentController,
-  getDailyDealsProductController,
-  getFeatureProductController,
-  getLatestProductController,
-} from "../controller/controllerProduct";
-import {
-  askAIController,
-  createRoomChatController,
-  getAllRoomChatController,
-  getMessageByRoomChatController,
-} from "../controller/messageController";
+import { createOtpController, createUserController, editAccountController, getPasswordController, getUserDataController, loginUserController, sendCreateAccountOTPController, updatePasswordController } from "../controller/userController";
+import { cancelOrderController, getPaymentController, makePaymentController, purchaseController } from "../controller/purchaseController";
+import { addCommentController, createAddressController, createCartProductController, createWishListController, deleteAddressController, deleteAllWishListController, deleteCartProductController, deleteWishListController, editAddressController, editCartProductController, getAddressController, getCartProductController, getCommentController, getHistoryController, getWishListController, wishListController } from "../controller/customerController";
+import { getBestSellerProductController, getCatgoryController, getDailyDealsProductController, getFeatureProductController, getLatestProductController } from "../controller/productController";
+import { askAIController, createRoomChatController, getAllRoomChatController, getMessageByRoomChatController } from "../controller/messageController";
 
 //Routers
 const userRouter = express.Router();
